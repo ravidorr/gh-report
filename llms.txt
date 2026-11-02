@@ -5,6 +5,7 @@
 ## Project
 
 - [Overview and quickstart](/README.md): Purpose, requirements, quickstart, and usage.
+- [Live report](https://ravidorr.github.io/gh-report/): The published dashboard, refreshed daily.
 - [Changelog](/CHANGELOG.md): Released changes.
 - [Design system](/design-system/README.md): Tokens and components used by the dashboard.
 - [Collector script](/gh-repo-report.sh): Reads the GitHub API and writes the report data.
