@@ -13,11 +13,13 @@
     <main>
       <h1>GitHub repos</h1>
       <p class="lede" id="lede">Loading...</p>
+      <noscript><p class="lede">This dashboard needs JavaScript to show the report.</p></noscript>
+      <p class="banner" id="stale" role="alert" hidden></p>
       <div id="content" hidden>
         <div class="tiles" id="tiles"></div>
         <section class="card" aria-labelledby="repos-title">
           <h2 id="repos-title">All repos</h2>
-          <p class="note">Repos with the most open items first. A dash means the feature is off for that repo. "Not checked" means the token could not read it.</p>
+          <p class="note">Repos with the most open items first. A dash means the feature is off for that repo. "Not checked" means the token could not read it, and "Error" means GitHub's API failed. A "?" means that count could not be read.</p>
           <div class="box"><table class="data-table" id="repos"></table></div>
         </section>
         <section class="card" aria-labelledby="prs-title">
@@ -30,7 +32,7 @@
         </section>
         <section class="card" aria-labelledby="failed-title">
           <h2 id="failed-title">Failed workflows</h2>
-          <p class="note">Latest run of each workflow, only when that run failed. Oldest first.</p>
+          <p class="note">Latest completed run of each workflow on the default branch, among the repo's last 100 runs, only when that run failed. Cancelled runs are ignored. Oldest first.</p>
           <div class="box"><table class="data-table" id="failed"></table></div>
         </section>
       </div>

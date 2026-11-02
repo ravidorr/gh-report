@@ -10,8 +10,7 @@ afterEach(() => {
 
 it('loads and renders the dashboard as soon as the page script runs', async () => {
   document.body.innerHTML = PAGE_HTML;
-  const sample = readSample();
-  vi.stubGlobal('fetch', () => Promise.resolve(new Response(sample)));
+  vi.stubGlobal('fetch', () => Promise.resolve(new Response(readSample())));
 
   await import('../src/index.js');
 

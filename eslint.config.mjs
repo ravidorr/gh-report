@@ -27,7 +27,7 @@ export default tseslint.config(
   {
     files: ['**/*.{js,mjs,cjs}'],
     languageOptions: { globals: globals.node },
-    // Plain JS/MJS tooling scripts have no type annotations; return types apply to TypeScript only.
+    // Plain JS/MJS files are not part of the TS project: no return types, and no type-aware rules (below).
     rules: { '@typescript-eslint/explicit-function-return-type': 'off' },
   },
   {
@@ -36,7 +36,6 @@ export default tseslint.config(
     rules: { 'no-console': 'off' },
   },
   {
-    // Plain JS/MJS config and script files are not part of the TS project.
     files: ['**/*.{js,mjs,cjs}'],
     ...tseslint.configs.disableTypeChecked,
   },

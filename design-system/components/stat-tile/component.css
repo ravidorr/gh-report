@@ -29,3 +29,7 @@
 .tile-warn .tile-value {
   color: var(--color-warning);
 }
+
+.tile-unchecked .tile-sub {
+  color: var(--color-warning);
+}

@@ -1,4 +1,4 @@
-// Release policy gate: one SemVer bump per PR and a matching CHANGELOG entry.
+// Release policy gate: the package version must increase (SemVer) and CHANGELOG.md must have a matching entry.
 //
 // Modes (run from the repository root):
 //   BASE_REF=<ref> node scripts/check-release.mjs       version and changelog gate

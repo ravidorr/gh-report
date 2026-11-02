@@ -6,6 +6,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov', 'json-summary'],
       // Vitest 5 measures every file matched by `include`, including ones no test imports.
+      // Only src/ is measured. The collector (bash) and scripts/ are covered by behaviour tests, not by this gate.
       include: ['src/**/*.{ts,tsx,js,mjs}'],
       exclude: ['**/*.stories.*', '**/*.d.ts', '**/*.test.*', '**/*.spec.*'],
       // 100% is mandatory on git push and in CI. Do not lower these.

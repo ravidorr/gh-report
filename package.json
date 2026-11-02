@@ -21,7 +21,7 @@
     "lint:css": "stylelint --max-warnings=0 --allow-empty-input \"**/*.css\"",
     "lint:html": "node scripts/lint-html.mjs",
     "lint:md": "markdownlint-cli2",
-    "lint:sh": "shellcheck gh-repo-report.sh",
+    "lint:sh": "shellcheck gh-repo-report.sh test/support/gh-stub.sh .husky/pre-commit .husky/pre-push .husky/commit-msg .husky/post-commit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -44,6 +44,7 @@
     "stylelint-config-standard": "40.0.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "yaml": "2.9.1"
   }
 }

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import type { Repo } from '../src/types.js';
+import type { Report, Repo } from '../src/types.js';
 
 /** Raw text of the synthetic sample report (also used by Lighthouse in CI). */
 export function readSample(): string {
@@ -20,6 +20,7 @@ export function makeRepo(name: string, overrides: Partial<Repo> = {}): Repo {
     archived: false,
     default_branch: 'main',
     branches: { count: 1, url: `${url}/branches` },
+    collection_errors: [],
     open_prs: [],
     open_issues: [],
     failed_workflows: [],
@@ -30,9 +31,14 @@ export function makeRepo(name: string, overrides: Partial<Repo> = {}): Repo {
   };
 }
 
+export function makeReport(repos: Repo[] = [], overrides: Partial<Report> = {}): Report {
+  return { schema_version: 1, alert_details: true, generated_at: '2026-01-15T05:17:00Z', repos, ...overrides };
+}
+
 /** Page skeleton with the ids the dashboard renders into. */
 export const PAGE_HTML = `
   <p id="lede"></p>
+  <p id="stale" role="alert" hidden></p>
   <div id="content" hidden>
     <div id="tiles"></div>
     <table id="repos"></table>

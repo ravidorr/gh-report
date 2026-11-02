@@ -1,3 +1,5 @@
+/* Keep the two dark palettes below identical: the media query follows the system setting, and
+   data-theme='dark' is an opt-in override that nothing in this repo sets yet. */
 :root {
   --color-bg: #faf9f5;
   --color-surface: #fff;

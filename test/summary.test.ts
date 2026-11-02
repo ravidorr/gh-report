@@ -1,27 +1,35 @@
 import { describe, expect, it } from 'vitest';
 
-import { alertCell, attentionScore, computeTotals, sortRepos } from '../src/summary.js';
+import { alertCell, attentionScore, computeTotals, isNotChecked, sortRepos } from '../src/summary.js';
+import type { Repo, ScanStatus } from '../src/types.js';
 import { makeRepo } from './helpers.js';
 
-const url = 'https://example.test';
-const alert = { number: 1, package: 'p', ecosystem: 'npm', scope: null, severity: 'high', classification: 'general', summary: 's', url };
+const url = 'https://github.com/example-owner/x';
+const dependabotAlert = { number: 1, url, package: 'p', ecosystem: 'npm', scope: null, severity: 'high', classification: 'general', summary: 's' };
+const block = (status: ScanStatus): Repo['code_scanning'] => ({ status, message: '', url, alerts: [] });
 
 describe('computeTotals', () => {
-  it('sums every counter and counts repos whose Dependabot alerts could be read', () => {
+  it('sums every counter and counts repos whose data could not be read, per figure', () => {
     const busy = makeRepo('busy', {
       open_prs: [{ number: 1, title: 't', url, draft: false }],
       open_issues: [
         { number: 2, title: 't', url },
         { number: 3, title: 't', url },
       ],
-      failed_workflows: [{ workflow: 'CI', conclusion: 'failure', branch: 'main', created_at: '2026-01-01T00:00:00Z', path: 'p', url }],
-      dependabot: { status: 'ok', message: '', url, alerts: [alert, alert], malware_alerts: [alert] },
-      code_scanning: { status: 'ok', message: '', url, alerts: [{ number: 1, rule: 'r', tool: 't', severity: null, path: 'p', summary: 's', url }] },
-      secret_scanning: { status: 'ok', message: '', url, alerts: [{ number: 1, secret_type: 'x', validity: null, created_at: 'c', url }] },
+      failed_workflows: [{ workflow: 'CI', conclusion: 'failure', branch: 'main', created_at: '2026-01-01T00:00:00Z', url }],
+      dependabot: { ...block('ok'), alerts: [dependabotAlert, dependabotAlert], malware_alerts: [dependabotAlert] },
+      code_scanning: { ...block('ok'), alerts: [{ number: 1, url }] },
+      secret_scanning: { ...block('ok'), alerts: [{ number: 1, url }] },
     });
-    const off = makeRepo('off', { dependabot: { status: 'disabled', message: '', url, alerts: [], malware_alerts: [] } });
+    const blind = makeRepo('blind', {
+      collection_errors: ['pulls', 'issues', 'runs', 'branches'],
+      dependabot: { ...block('no_permission'), malware_alerts: [] },
+      code_scanning: block('error'),
+      secret_scanning: block('no_permission'),
+    });
+    const off = makeRepo('off', { dependabot: { ...block('disabled'), malware_alerts: [] }, code_scanning: block('disabled'), secret_scanning: block('disabled') });
 
-    expect(computeTotals([busy, off])).toEqual({
+    expect(computeTotals([busy, blind, off])).toEqual({
       prs: 1,
       issues: 2,
       failed: 1,
@@ -29,7 +37,7 @@ describe('computeTotals', () => {
       malware: 1,
       codeScanning: 1,
       secretScanning: 1,
-      checked: 1,
+      notChecked: { prs: 1, issues: 1, failed: 1, dependabot: 1, codeScanning: 1, secretScanning: 1 },
     });
   });
 
@@ -42,8 +50,19 @@ describe('computeTotals', () => {
       malware: 0,
       codeScanning: 0,
       secretScanning: 0,
-      checked: 0,
+      notChecked: { prs: 0, issues: 0, failed: 0, dependabot: 0, codeScanning: 0, secretScanning: 0 },
     });
+  });
+});
+
+describe('isNotChecked', () => {
+  it.each([
+    ['ok', false],
+    ['disabled', false],
+    ['no_permission', true],
+    ['error', true],
+  ] as const)('%s -> %s', (status, expected) => {
+    expect(isNotChecked(status)).toBe(expected);
   });
 });
 
@@ -54,7 +73,13 @@ describe('sortRepos', () => {
 
     expect(sortRepos(input).map((r) => r.name)).toEqual(['c', 'a', 'b']);
     expect(input.map((r) => r.name)).toEqual(['b', 'a', 'c']);
-    expect(attentionScore(input[2] ?? makeRepo('x'))).toBe(1);
+  });
+
+  it('ranks a repo whose data could not be read above a clean one', () => {
+    const unreadable: Repo = makeRepo('z', { collection_errors: ['pulls'], secret_scanning: block('no_permission') });
+
+    expect(attentionScore(unreadable)).toBe(2);
+    expect(sortRepos([makeRepo('a'), unreadable]).map((r) => r.name)).toEqual(['z', 'a']);
   });
 });
 
@@ -63,7 +88,7 @@ describe('alertCell', () => {
     ['ok', 1234, '1,234'],
     ['disabled', 5, '-'],
     ['no_permission', 5, 'Not checked'],
-    ['error', 5, 'Not checked'],
+    ['error', 5, 'Error'],
   ] as const)('shows %s with count %i as %s', (status, count, text) => {
     expect(alertCell(status, count)).toBe(text);
   });

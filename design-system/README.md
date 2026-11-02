@@ -12,8 +12,8 @@ Single source of truth for the dashboard's look.
 
 ## Rules
 
-- No hard-coded colors, spacing, or font sizes outside `tokens.css` (Stylelint rejects bare hex values for color properties).
-- New component: add its CSS and README under `components/` (one folder per component), show it on `index.html`, and use tokens only.
+- No hard-coded colors, spacing, or font sizes outside `tokens.css`. Stylelint rejects hex literals in `color`, `background`, `border`, `fill` and `stroke` properties; everything else is checked in review.
+- New component: add its CSS and README under `components/` (one folder per component), show it on `index.html`, use tokens only, and add its `component.css` to the `stylesheets` list in `scripts/build.mjs`, or it is not part of the page.
 - Must meet WCAG 2.1 AA contrast in light and dark.
 - Changing a token is a visible change: note it in `CHANGELOG.md` (the release gate does not enforce this for `design-system/`).
 

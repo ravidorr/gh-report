@@ -12,22 +12,13 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  # Never cancel a run in progress: a cancelled run is not a failure, so nobody would be told.
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.REPORT_TOKEN }}
-      # Pages sites are public. Set to "true" only if you accept private repo names being published.
-      INCLUDE_PRIVATE: "false"
-      INCLUDE_FORKS: "false"
-      INCLUDE_ARCHIVED: "false"
-      # Alerts keep only number and url in the published data.json (no package names, paths, secret types).
-      ALERT_DETAILS: "false"
-      # Optional repo secret: repo names to leave out, separated by commas or spaces. It must be a secret,
-      # not a variable: variables are printed in plain text in public run logs, secrets are masked.
-      EXCLUDE_REPOS: ${{ secrets.EXCLUDE_REPOS }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -36,8 +27,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # The token and the collector settings live on this step only, so install scripts and the build
+      # never see the token.
       - name: Collect data
+        env:
+          GH_TOKEN: ${{ secrets.REPORT_TOKEN }}
+          # Pages sites are public. Set to "true" only if you accept private repo names being published.
+          INCLUDE_PRIVATE: "false"
+          INCLUDE_FORKS: "false"
+          INCLUDE_ARCHIVED: "false"
+          # Alerts keep only number and url in the published data.json (no package names, paths, secret types).
+          ALERT_DETAILS: "false"
+          # Optional repo secret: repo names to leave out, separated by commas or spaces. It must be a secret,
+          # not a variable: variables are printed in plain text in public run logs, secrets are masked.
+          EXCLUDE_REPOS: ${{ secrets.EXCLUDE_REPOS }}
         run: bash gh-repo-report.sh dist/data.json
+      # Fails the run (and keeps the last good site) when the data is empty or incomplete.
+      - name: Verify the data is complete
+        run: node scripts/verify-report.mjs dist/data.json
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
@@ -45,6 +52,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

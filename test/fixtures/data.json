@@ -1,4 +1,6 @@
 {
+  "schema_version": 1,
+  "alert_details": true,
   "generated_at": "2026-01-15T05:17:00Z",
   "repos": [
     {
@@ -83,7 +85,8 @@
         "message": "",
         "alerts": [],
         "url": "https://github.com/example-owner/example-app/security/secret-scanning"
-      }
+      },
+      "collection_errors": []
     },
     {
       "name": "example-lib",
@@ -118,7 +121,10 @@
         "message": "",
         "alerts": [],
         "url": "https://github.com/example-owner/example-lib/security/secret-scanning"
-      }
+      },
+      "collection_errors": [
+        "runs"
+      ]
     },
     {
       "name": "example-site",
@@ -153,7 +159,8 @@
         "message": "",
         "alerts": [],
         "url": "https://github.com/example-owner/example-site/security/secret-scanning"
-      }
+      },
+      "collection_errors": []
     }
   ]
 }

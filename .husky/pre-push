@@ -11,4 +11,5 @@ done
 npm run lint
 npm run typecheck
 npm run test:coverage
-BASE_REF=origin/main node scripts/check-release.mjs
+# Keep RELEASE_TRIGGER_PATHS equal to the one in .github/workflows/ci.yml.
+BASE_REF=origin/main RELEASE_TRIGGER_PATHS=gh-repo-report.sh,site/,design-system/,scripts/build.mjs,scripts/verify-report.mjs,.github/workflows/report.yml node scripts/check-release.mjs

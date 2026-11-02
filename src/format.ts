@@ -5,9 +5,10 @@ export function formatNumber(n: number): string {
   return n.toLocaleString('en');
 }
 
-/** Whole days between an ISO timestamp and `now` (epoch ms), never negative. */
+/** Whole days between an ISO timestamp and `now` (epoch ms); never negative, and 0 for an invalid date. */
 export function ageDays(iso: string, now: number): number {
-  return Math.max(0, Math.floor((now - new Date(iso).getTime()) / MS_PER_DAY));
+  const days = Math.floor((now - new Date(iso).getTime()) / MS_PER_DAY);
+  return Number.isNaN(days) ? 0 : Math.max(0, days);
 }
 
 /** Human readable age: "today", "1 day", "12 days", "3 months". */

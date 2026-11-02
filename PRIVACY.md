@@ -4,7 +4,7 @@ Last updated: 2026-11-02
 
 ## Data we collect
 
-gh-report collects no data about visitors. It reads repository metadata of the account that owns the access token through the GitHub API: repository names and links (which include the owner's GitHub login), branch counts, the titles of open pull requests and issues (written by their authors), workflow run results, and counts of security alerts. Secret values are never stored.
+gh-report collects no data about visitors. It reads repository metadata of the account that owns the access token through the GitHub API: repository names and links (which include the owner's GitHub login), branch counts, the titles of open pull requests and issues (written by their authors), the names and branches of failed workflow runs, and the number and link of each open security alert. Secret values are never stored, and the published data has no package names, alert file paths, secret types, error text or workflow file paths.
 
 ## How data is used
 

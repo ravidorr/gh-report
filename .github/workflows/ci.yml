@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -16,9 +15,14 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Posts the coverage table as a PR comment.
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
+          # Full history: scripts/check-release.mjs diffs against origin/<base>.
           fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
@@ -29,6 +33,8 @@ jobs:
       - run: npm run typecheck
       - name: Tests with 100% coverage gate
         run: npm run test:coverage
+      # The <!-- coverage-report --> marker in the table is informational: `gh pr comment --edit-last` edits the
+      # bot's last comment whatever it contains.
       - name: Coverage report (job summary and PR comment)
         if: always()
         env:
@@ -46,18 +52,21 @@ jobs:
         with:
           name: coverage
           path: coverage
-      - run: npm run build --if-present
+      - run: npm run build
       - name: Dependency audit (production, blocking)
         run: npm audit --omit=dev --audit-level=high
       - name: Dependency audit (dev tooling, informational)
         continue-on-error: true
         run: npm audit --audit-level=high
-      # Only enforced when release-relevant files change (package.json, tsconfig.json, src/**), see scripts/check-release.mjs.
-      # Dependabot PRs for actions never carry a release bump or changelog entry.
+      # Only enforced when release-relevant files change: the paths built into scripts/check-release.mjs (package.json,
+      # tsconfig.json, src/ and others) plus RELEASE_TRIGGER_PATHS below. Keep that list equal to .husky/pre-push.
+      # Skipped for all Dependabot PRs: they update package.json, the lockfile or action versions but never carry a
+      # version bump or changelog entry.
       - name: Version and changelog gate
         if: github.actor != 'dependabot[bot]'
         env:
           BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+          RELEASE_TRIGGER_PATHS: gh-repo-report.sh,site/,design-system/,scripts/build.mjs,scripts/verify-report.mjs,.github/workflows/report.yml
         run: node scripts/check-release.mjs
 
   lighthouse:
