@@ -6,6 +6,8 @@
 
 A daily GitHub Action that collects branches, open pull requests, open issues, failed workflows and security alerts for your repositories, then publishes them as a static dashboard on GitHub Pages.
 
+**[View the live report](https://ravidorr.github.io/gh-report/)** (refreshed daily at 05:17 UTC).
+
 ## How it works
 
 1. `gh-repo-report.sh` (bash, `gh` and `jq`) reads every repository you own and writes `data.json`: branch counts, open PRs and issues, the workflows whose latest completed run on the default branch failed (among the repo's last 100 completed runs, ignoring cancelled runs and Dependabot update runs), and open Dependabot, code scanning and secret scanning alerts. Secret values are never stored.
