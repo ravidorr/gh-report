@@ -8,6 +8,7 @@ interface Step {
   name?: string;
   uses?: string;
   run?: string;
+  if?: string;
   env?: Record<string, string>;
 }
 interface Job {
@@ -73,6 +74,22 @@ describe('report workflow', () => {
   });
 });
 
+describe('Dependabot configuration', () => {
+  const dependabot = parse(read('.github/dependabot.yml')) as { updates: { 'package-ecosystem': string; ignore?: { 'dependency-name': string; 'update-types': string[] }[] }[] };
+  const npm = dependabot.updates.find((update) => update['package-ecosystem'] === 'npm');
+
+  it.each(['typescript', '@types/node'])('holds back major bumps of %s', (name) => {
+    expect(npm?.ignore).toContainEqual({ 'dependency-name': name, 'update-types': ['version-update:semver-major'] });
+  });
+
+  it('keeps @types/node on the same major as the Node version in .nvmrc', () => {
+    const nodeMajor = read('.nvmrc').trim().split('.')[0];
+    const types = (JSON.parse(read('package.json')) as { devDependencies: Record<string, string> }).devDependencies['@types/node'];
+
+    expect(types?.split('.')[0]).toBe(nodeMajor);
+  });
+});
+
 describe('CI workflow', () => {
   const ci = workflow('ci.yml');
 
@@ -84,6 +101,14 @@ describe('CI workflow', () => {
     expect(ci.permissions).toEqual({ contents: 'read' });
     expect(ci.jobs.quality?.permissions).toMatchObject({ 'pull-requests': 'write' });
     expect(ci.jobs.lighthouse?.permissions).toBeUndefined();
+  });
+
+  it('skips the release gate for Dependabot by actor, by PR author, and by commit author', () => {
+    const gate = steps(jobOf(ci, 'quality')).find((step) => step.run?.includes('check-release.mjs'));
+
+    expect(gate?.if).toContain("github.actor != 'dependabot[bot]'");
+    expect(gate?.if).toContain("github.event.pull_request.user.login != 'dependabot[bot]'");
+    expect(gate?.if).toContain("github.event.head_commit.author.name != 'dependabot[bot]'");
   });
 
   it('runs the release gate with the same trigger paths as the pre-push hook', () => {

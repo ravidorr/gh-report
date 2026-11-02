@@ -60,10 +60,15 @@ jobs:
         run: npm audit --audit-level=high
       # Only enforced when release-relevant files change: the paths built into scripts/check-release.mjs (package.json,
       # tsconfig.json, src/ and others) plus RELEASE_TRIGGER_PATHS below. Keep that list equal to .husky/pre-push.
-      # Skipped for all Dependabot PRs: they update package.json, the lockfile or action versions but never carry a
-      # version bump or changelog entry.
+      # Skipped for Dependabot: it updates package.json, the lockfile or action versions but never carries a version
+      # bump or changelog entry. Checked three ways, because the actor is not always Dependabot: a person who clicks
+      # "Update branch" or comments "@dependabot rebase" becomes the actor of the PR run (so the PR author is checked),
+      # and the push to main after a squash merge is made by the person who merged (so the commit author is checked).
       - name: Version and changelog gate
-        if: github.actor != 'dependabot[bot]'
+        if: >-
+          github.actor != 'dependabot[bot]' &&
+          github.event.pull_request.user.login != 'dependabot[bot]' &&
+          github.event.head_commit.author.name != 'dependabot[bot]'
         env:
           BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
           RELEASE_TRIGGER_PATHS: gh-repo-report.sh,site/,design-system/,scripts/build.mjs,scripts/verify-report.mjs,.github/workflows/report.yml
