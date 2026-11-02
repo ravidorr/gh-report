@@ -1,12 +1,21 @@
 # Security Policy
 
-## Supported versions
+## Supported Versions
 
-| Version | Supported |
-| --- | --- |
-| Latest release | Yes |
-| Older | No |
+Use this section to tell people about which versions of your project are
+currently being supported with security updates.
 
-## Reporting a vulnerability
+| Version | Supported          |
+| ------- | ------------------ |
+| 5.1.x   | :white_check_mark: |
+| 5.0.x   | :x:                |
+| 4.0.x   | :white_check_mark: |
+| < 4.0   | :x:                |
 
-Do not open a public issue. Report vulnerabilities privately through GitHub private vulnerability reporting (Security tab, then Report a vulnerability). If that is unavailable, email <raanan@avidor.org>. Expect an acknowledgement within 3 business days.
+## Reporting a Vulnerability
+
+Use this section to tell people how to report a vulnerability.
+
+Tell them where to go, how often they can expect to get an update on a
+reported vulnerability, what to expect if the vulnerability is accepted or
+declined, etc.
