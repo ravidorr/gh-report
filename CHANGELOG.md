@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-11-02
+
+### Security
+
+- Close three Dependabot alerts in dev tooling (nothing in the deployed page) with npm `overrides` to the patched versions: `minimatch` 11.0.1 (denial of service, used by ESLint), `re2js` 2.8.7 (denial of service, used by markdownlint) and `katex` 0.18.2 (prototype pollution, pulled in by markdownlint). No release of the packages that depend on them allows the fixed versions yet.
+
 ## [0.2.0] - 2026-11-02
 
 ### Changed
