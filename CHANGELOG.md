@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-11-02
+
+### Changed
+
+- Move to Node.js 26.13.0, the current LTS (Lithium), from 24.22.2: `.nvmrc`, `engines`, `packageManager` (npm 11.20.0) and `@types/node` 26. Contributors need Node 26.
+
 ## [0.1.2] - 2026-11-02
 
 ### Changed
