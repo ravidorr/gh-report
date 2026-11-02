@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ravidorr/gh-report/actions/workflows/ci.yml/badge.svg)](https://github.com/ravidorr/gh-report/actions/workflows/ci.yml) [![Release](https://github.com/ravidorr/gh-report/actions/workflows/release.yml/badge.svg)](https://github.com/ravidorr/gh-report/actions/workflows/release.yml)
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ravidorr/gh-report/pulls) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/ravidorr/gh-report/graphs/commit-activity) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Node.js](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)](https://nodejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ravidorr/gh-report/pulls) [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/ravidorr/gh-report/graphs/commit-activity) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Node.js](https://img.shields.io/badge/Node.js-26-339933?logo=node.js&logoColor=white)](https://nodejs.org/) [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 A daily GitHub Action that collects branches, open pull requests, open issues, failed workflows and security alerts for your repositories, then publishes them as a static dashboard on GitHub Pages.
 
@@ -37,7 +37,7 @@ INCLUDE_PRIVATE=false bash gh-repo-report.sh dist/data.json
 python3 -m http.server -d dist
 ```
 
-Requires Node.js 24.22.2 or a later 24.x (pinned in `.nvmrc`), an authenticated `gh`, `jq`, `bash`, and `python3` for the local server. Linting and the pre-push hook also need `shellcheck` (`brew install shellcheck`). Open `http://localhost:8000`. The collector's environment variables are documented at the top of `gh-repo-report.sh`.
+Requires Node.js 26.13.0 or a later 26.x (pinned in `.nvmrc`), an authenticated `gh`, `jq`, `bash`, and `python3` for the local server. Linting and the pre-push hook also need `shellcheck` (`brew install shellcheck`). Open `http://localhost:8000`. The collector's environment variables are documented at the top of `gh-repo-report.sh`.
 
 ## Scripts
 

@@ -1,6 +1,6 @@
 {
   "name": "gh-report",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": true,
   "description": "Daily GitHub Action that publishes a static dashboard of branches, pull requests, issues, failed workflows and security alerts for your repositories.",
   "type": "module",
@@ -10,9 +10,9 @@
     "url": "git+https://github.com/ravidorr/gh-report.git"
   },
   "engines": {
-    "node": ">=24.22.2 <25"
+    "node": ">=26.13.0 <27"
   },
-  "packageManager": "npm@11.19.1",
+  "packageManager": "npm@11.20.0",
   "scripts": {
     "prepare": "husky",
     "build": "node scripts/build.mjs",
@@ -29,7 +29,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.6",
     "@vitest/coverage-v8": "5.0.5",
     "esbuild": "0.28.2",
     "eslint": "10.14.0",
