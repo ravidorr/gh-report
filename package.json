@@ -1,6 +1,6 @@
 {
   "name": "gh-report",
-  "version": "0.1.3",
+  "version": "0.2.1",
   "private": true,
   "description": "Daily GitHub Action that publishes a static dashboard of branches, pull requests, issues, failed workflows and security alerts for your repositories.",
   "type": "module",
