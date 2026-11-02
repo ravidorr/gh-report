@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.lighthouseci/
+release-notes.md
+coverage-report.md
+.env*
+!.env.example
+.DS_Store
+# Report output can contain private repository names: never commit it.
+data.json
+gh-repo-report*.json
+!test/fixtures/data.json
+.playwright-mcp/
+.claude/settings.local.json

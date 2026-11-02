@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Design system showcase for gh-report.">
+    <title>gh-report Design System</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./tokens.css">
+    <link rel="stylesheet" href="./components/stat-tile/component.css">
+    <link rel="stylesheet" href="./components/data-table/component.css">
+    <link rel="stylesheet" href="./showcase.css">
+  </head>
+  <body>
+    <main>
+      <h1>gh-report Design System</h1>
+      <section aria-labelledby="colors">
+        <h2 id="colors">Colors</h2>
+        <ul class="swatches">
+          <li class="swatch swatch-primary">Primary</li>
+          <li class="swatch swatch-surface">Surface</li>
+          <li class="swatch swatch-danger">Danger</li>
+          <li class="swatch swatch-warning">Warning</li>
+        </ul>
+      </section>
+      <section aria-labelledby="tiles">
+        <h2 id="tiles">Stat tile</h2>
+        <div class="demo-grid">
+          <div class="tile tile-zero">
+            <span class="tile-label">Open issues</span>
+            <b class="tile-value">0</b>
+            <span class="tile-sub">neutral</span>
+          </div>
+          <div class="tile tile-warn">
+            <span class="tile-label">Dependabot alerts</span>
+            <b class="tile-value">3</b>
+            <span class="tile-sub">warning</span>
+          </div>
+          <div class="tile tile-bad">
+            <span class="tile-label">Failed workflows</span>
+            <b class="tile-value">2</b>
+            <span class="tile-sub">danger</span>
+          </div>
+        </div>
+      </section>
+      <section aria-labelledby="table">
+        <h2 id="table">Data table</h2>
+        <table class="data-table">
+          <thead>
+            <tr><th>Repo</th><th class="data-table-n">Open PRs</th><th class="data-table-n">Failed workflows</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>example-app</td><td class="data-table-n data-table-warn">2</td><td class="data-table-n data-table-muted">0</td></tr>
+            <tr><td>example-lib</td><td class="data-table-n data-table-muted">0</td><td class="data-table-n data-table-bad">1</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>

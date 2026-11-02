@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "alert_details": true,
+  "generated_at": "2026-01-15T05:17:00Z",
+  "repos": [
+    {
+      "name": "example-app",
+      "full_name": "example-owner/example-app",
+      "html_url": "https://github.com/example-owner/example-app",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "default_branch": "main",
+      "branches": {
+        "count": 3,
+        "url": "https://github.com/example-owner/example-app/branches"
+      },
+      "open_prs": [
+        {
+          "number": 4,
+          "title": "Add feature",
+          "url": "https://github.com/example-owner/example-app/pull/4",
+          "draft": true
+        },
+        {
+          "number": 5,
+          "title": "Fix bug",
+          "url": "https://github.com/example-owner/example-app/pull/5",
+          "draft": false
+        }
+      ],
+      "open_issues": [
+        {
+          "number": 2,
+          "title": "Crash on start",
+          "url": "https://github.com/example-owner/example-app/issues/2"
+        }
+      ],
+      "failed_workflows": [
+        {
+          "workflow": "CI",
+          "conclusion": "failure",
+          "branch": "main",
+          "created_at": "2026-01-10T08:00:00Z",
+          "path": ".github/workflows/ci.yml",
+          "url": "https://github.com/example-owner/example-app/actions/runs/1"
+        }
+      ],
+      "dependabot": {
+        "status": "ok",
+        "message": "",
+        "malware_alerts": [],
+        "url": "https://github.com/example-owner/example-app/security/dependabot",
+        "alerts": [
+          {
+            "number": 1,
+            "package": "left-pad",
+            "ecosystem": "npm",
+            "scope": "runtime",
+            "severity": "high",
+            "classification": "general",
+            "summary": "Example advisory",
+            "url": "https://github.com/example-owner/example-app/security/dependabot/1"
+          }
+        ]
+      },
+      "code_scanning": {
+        "status": "ok",
+        "message": "",
+        "alerts": [
+          {
+            "number": 7,
+            "rule": "js/example",
+            "tool": "CodeQL",
+            "severity": "medium",
+            "path": "src/index.ts",
+            "summary": "Example finding",
+            "url": "https://github.com/example-owner/example-app/security/code-scanning/7"
+          }
+        ],
+        "url": "https://github.com/example-owner/example-app/security/code-scanning"
+      },
+      "secret_scanning": {
+        "status": "ok",
+        "message": "",
+        "alerts": [],
+        "url": "https://github.com/example-owner/example-app/security/secret-scanning"
+      },
+      "collection_errors": []
+    },
+    {
+      "name": "example-lib",
+      "full_name": "example-owner/example-lib",
+      "html_url": "https://github.com/example-owner/example-lib",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "default_branch": "main",
+      "branches": {
+        "count": 1,
+        "url": "https://github.com/example-owner/example-lib/branches"
+      },
+      "open_prs": [],
+      "open_issues": [],
+      "failed_workflows": [],
+      "dependabot": {
+        "status": "disabled",
+        "message": "",
+        "alerts": [],
+        "url": "https://github.com/example-owner/example-lib/security/dependabot",
+        "malware_alerts": []
+      },
+      "code_scanning": {
+        "status": "disabled",
+        "message": "",
+        "alerts": [],
+        "url": "https://github.com/example-owner/example-lib/security/code-scanning"
+      },
+      "secret_scanning": {
+        "status": "no_permission",
+        "message": "",
+        "alerts": [],
+        "url": "https://github.com/example-owner/example-lib/security/secret-scanning"
+      },
+      "collection_errors": [
+        "runs"
+      ]
+    },
+    {
+      "name": "example-site",
+      "full_name": "example-owner/example-site",
+      "html_url": "https://github.com/example-owner/example-site",
+      "private": false,
+      "fork": false,
+      "archived": false,
+      "default_branch": "main",
+      "branches": {
+        "count": 1,
+        "url": "https://github.com/example-owner/example-site/branches"
+      },
+      "open_prs": [],
+      "open_issues": [],
+      "failed_workflows": [],
+      "dependabot": {
+        "status": "ok",
+        "message": "",
+        "alerts": [],
+        "url": "https://github.com/example-owner/example-site/security/dependabot",
+        "malware_alerts": []
+      },
+      "code_scanning": {
+        "status": "ok",
+        "message": "",
+        "alerts": [],
+        "url": "https://github.com/example-owner/example-site/security/code-scanning"
+      },
+      "secret_scanning": {
+        "status": "ok",
+        "message": "",
+        "alerts": [],
+        "url": "https://github.com/example-owner/example-site/security/secret-scanning"
+      },
+      "collection_errors": []
+    }
+  ]
+}

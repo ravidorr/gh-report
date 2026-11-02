@@ -1,0 +1,22 @@
+# gh-report
+
+> A daily GitHub Action that collects branches, open pull requests, open issues, failed workflows and security alerts for your repositories, then publishes them as a static dashboard on GitHub Pages.
+
+## Project
+
+- [Overview and quickstart](/README.md): Purpose, requirements, quickstart, and usage.
+- [Changelog](/CHANGELOG.md): Released changes.
+- [Design system](/design-system/README.md): Tokens and components used by the dashboard.
+- [Collector script](/gh-repo-report.sh): Reads the GitHub API and writes the report data.
+
+## Policies and support
+
+- [Security](/SECURITY.md): Vulnerability reporting and supported versions.
+- [Privacy](/PRIVACY.md): Data-handling policy.
+- [Support](/SUPPORT.md): Support and troubleshooting information.
+
+## Miscellaneous
+
+- [Agent guide](/AGENTS.md): Canonical instructions for AI coding agents.
+- [Contributing](/CONTRIBUTING.md): Development and contribution guidance.
+- [License](/LICENSE): License terms.

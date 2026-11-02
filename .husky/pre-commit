@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Fast, deterministic checks on staged files (target: under 10 seconds).
+npx lint-staged
+# Placeholder: nothing is generated and committed in this repo, so this always passes.
+npm run check:generated
