@@ -21,16 +21,27 @@ jobs:
       GH_TOKEN: ${{ secrets.REPORT_TOKEN }}
       # Pages sites are public. Set to "true" only if you accept private repo names being published.
       INCLUDE_PRIVATE: "false"
-      INCLUDE_FORKS: "true"
-      INCLUDE_ARCHIVED: "true"
+      INCLUDE_FORKS: "false"
+      INCLUDE_ARCHIVED: "false"
+      # Alerts keep only number and url in the published data.json (no package names, paths, secret types).
+      ALERT_DETAILS: "false"
+      # Optional repo variable (Settings > Secrets and variables > Actions > Variables): repo names to
+      # leave out, separated by commas or spaces. Kept out of the source so names are not published.
+      EXCLUDE_REPOS: ${{ vars.EXCLUDE_REPOS }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Collect data
-        run: bash gh-repo-report.sh site/data.json
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          path: site
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Collect data
+        run: bash gh-repo-report.sh dist/data.json
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -39,4 +50,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

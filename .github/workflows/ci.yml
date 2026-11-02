@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Tests with 100% coverage gate
+        run: npm run test:coverage
+      - name: Coverage report (job summary and PR comment)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CAN_COMMENT: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+        run: |
+          node scripts/coverage-summary.mjs > coverage-report.md
+          cat coverage-report.md >> "$GITHUB_STEP_SUMMARY"
+          if [ "$CAN_COMMENT" = "true" ]; then
+            gh pr comment "$PR_NUMBER" --body-file coverage-report.md --edit-last --create-if-none
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage
+          path: coverage
+      - run: npm run build --if-present
+      - name: Dependency audit (production, blocking)
+        run: npm audit --omit=dev --audit-level=high
+      - name: Dependency audit (dev tooling, informational)
+        continue-on-error: true
+        run: npm audit --audit-level=high
+      # Only enforced when release-relevant files change (package.json, tsconfig.json, src/**), see scripts/check-release.mjs.
+      # Dependabot PRs for actions never carry a release bump or changelog entry.
+      - name: Version and changelog gate
+        if: github.actor != 'dependabot[bot]'
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || github.event.before }}
+        run: node scripts/check-release.mjs
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # Lighthouse needs data to render: use the synthetic sample, never real report output.
+      - run: cp test/fixtures/data.json dist/data.json
+      - run: npx --yes @lhci/cli@0.15.1 autorun
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci

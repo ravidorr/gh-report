@@ -1,0 +1,31 @@
+/* Stat tile: one headline number with a label and a caption. */
+.tile {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.tile-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.tile-value {
+  display: block;
+  font: 400 var(--font-size-display) / 1.2 var(--font-serif);
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-sub {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.tile-bad .tile-value {
+  color: var(--color-danger);
+}
+
+.tile-warn .tile-value {
+  color: var(--color-warning);
+}

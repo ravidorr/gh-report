@@ -1,0 +1,49 @@
+{
+  "name": "gh-report",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Daily GitHub Action that publishes a static dashboard of branches, pull requests, issues, failed workflows and security alerts for your repositories.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ravidorr/gh-report.git"
+  },
+  "engines": {
+    "node": ">=24.22.2 <25"
+  },
+  "packageManager": "npm@11.19.1",
+  "scripts": {
+    "prepare": "husky",
+    "build": "node scripts/build.mjs",
+    "lint": "npm run lint:js && npm run lint:css && npm run lint:html && npm run lint:md && npm run lint:sh",
+    "lint:js": "eslint --max-warnings=0 .",
+    "lint:css": "stylelint --max-warnings=0 --allow-empty-input \"**/*.css\"",
+    "lint:html": "node scripts/lint-html.mjs",
+    "lint:md": "markdownlint-cli2",
+    "lint:sh": "shellcheck gh-repo-report.sh",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check:generated": "node -e \"process.exit(0)\""
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.19.2",
+    "@vitest/coverage-v8": "5.0.5",
+    "esbuild": "0.28.2",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "html-validate": "11.18.0",
+    "husky": "9.1.7",
+    "jsdom": "30.1.3",
+    "lint-staged": "17.6.0",
+    "markdownlint-cli2": "0.24.0",
+    "semver": "7.8.5",
+    "stylelint": "17.16.0",
+    "stylelint-config-standard": "40.0.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.0.5"
+  }
+}
