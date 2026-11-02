@@ -16,8 +16,9 @@ describe('report workflow', () => {
     expect(report).toMatch(/^\s+ALERT_DETAILS: "false"$/m);
   });
 
-  it('reads the exclude list from a repo variable, not from the source', () => {
-    expect(report).toContain('EXCLUDE_REPOS: ${{ vars.EXCLUDE_REPOS }}');
+  it('reads the exclude list from a secret, so names appear neither in the source nor in public logs', () => {
+    expect(report).toContain('EXCLUDE_REPOS: ${{ secrets.EXCLUDE_REPOS }}');
+    expect(report).not.toContain('vars.EXCLUDE_REPOS');
   });
 
   it('writes the collected data next to the built page and publishes that folder', () => {

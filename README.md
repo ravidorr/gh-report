@@ -17,7 +17,7 @@ A daily GitHub Action that collects branches, open pull requests, open issues, f
 1. Create a token: GitHub > Settings > Developer settings > Personal access tokens (classic) with scopes `repo` and `security_events`. Fine-grained tokens also work if they have read access to contents, pull requests, issues, actions, Dependabot alerts, code scanning alerts and secret scanning alerts on all repos.
 2. Repo > Settings > Secrets and variables > Actions > New repository secret: name `REPORT_TOKEN`, value the token.
 3. Repo > Settings > Pages > Source: GitHub Actions.
-4. Optional: add a repository variable `EXCLUDE_REPOS` with repo names to leave out, separated by commas or spaces. A variable keeps those names out of the public source.
+4. Optional: add a repository secret `EXCLUDE_REPOS` with repo names to leave out, separated by commas or spaces. Use a secret, not a variable: variables are printed in plain text in public workflow logs, secrets are masked.
 5. Actions tab > "Repo report" > Run workflow. The page URL appears in the deploy job.
 
 ## Privacy of the published page

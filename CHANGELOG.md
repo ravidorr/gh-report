@@ -12,7 +12,7 @@ All notable changes are documented here. Format follows [Keep a Changelog](https
 - Dependabot, code scanning, and secret scanning alert counts on the dashboard, with a tile and a column for each.
 - `ALERT_DETAILS` environment variable; the workflow sets it to `"false"` so the published data contains only the number and link of each alert.
 - Collector tests that run `gh-repo-report.sh` against a stubbed `gh`, including the privacy filters.
-- `EXCLUDE_REPOS` environment variable (fed from a repository variable) to leave repositories out of the report.
+- `EXCLUDE_REPOS` environment variable (fed from a repository secret) to leave repositories out of the report.
 
 ### Changed
 
