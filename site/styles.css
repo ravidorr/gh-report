@@ -1,0 +1,83 @@
+/* Page layout only. Colors, spacing, and type come from design-system/tokens.css. */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: var(--font-size-md) / 1.45 var(--font-sans);
+}
+
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3) var(--space-5);
+}
+
+h1 {
+  margin: 0 0 var(--space-1);
+  font: 400 var(--font-size-xl) var(--font-serif);
+}
+
+h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.lede,
+.note {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+.card {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.box {
+  max-height: 28rem;
+  overflow: auto;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 2px;
+}
+
+.tag {
+  margin-left: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.bar {
+  height: var(--space-1);
+  margin-top: var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-danger);
+}
+
+.banner {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-danger);
+  font-weight: 600;
+}

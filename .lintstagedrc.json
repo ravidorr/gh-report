@@ -1,0 +1,6 @@
+{
+  "*.{ts,tsx,js,mjs,cjs}": ["eslint --max-warnings=0"],
+  "*.css": ["stylelint --max-warnings=0"],
+  "*.html": ["html-validate"],
+  "*.md": ["markdownlint-cli2"]
+}

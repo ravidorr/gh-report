@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+# Never push directly to main: use a branch and a draft PR.
+while read -r _local_ref _local_sha remote_ref _remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "pre-push: pushing directly to main is not allowed. Push a branch and open a draft PR." >&2
+    exit 1
+  fi
+done
+
+# Branch-wide checks. CI re-enforces all of these (hooks can be bypassed client-side).
+npm run lint
+npm run typecheck
+npm run test:coverage
+# Keep RELEASE_TRIGGER_PATHS equal to the one in .github/workflows/ci.yml.
+BASE_REF=origin/main RELEASE_TRIGGER_PATHS=gh-repo-report.sh,site/,design-system/,scripts/build.mjs,scripts/verify-report.mjs,.github/workflows/report.yml node scripts/check-release.mjs

@@ -1,118 +1,42 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GitHub repos</title>
-<style>
-:root { --bg:#faf9f5; --panel:#fff; --fg:#1f1e1d; --muted:#6b6962; --line:#e6e3da; --bad:#a42528; --warn:#8a5a00; }
-@media (prefers-color-scheme: dark) { :root { --bg:#1f1e1d; --panel:#2a2927; --fg:#f2f0ea; --muted:#a8a59c; --line:#3d3b37; --bad:#ff8a8d; --warn:#f0b34d; } }
-* { box-sizing: border-box; }
-body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif; }
-main { max-width:72rem; margin:0 auto; padding:1.5rem 1rem 3rem; }
-h1 { font:400 1.9rem Georgia,serif; margin:0 0 .25rem; }
-h2 { font-size:1rem; font-weight:600; margin:0 0 .25rem; }
-.lede, .note { color:var(--muted); font-size:.85rem; margin:0 0 .75rem; }
-.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr)); gap:.75rem; margin:1rem 0 1.25rem; }
-.card { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:.9rem 1rem; margin-bottom:.9rem; }
-.tiles .card { margin:0; }
-.label { color:var(--muted); font-size:.8rem; }
-.num { display:block; font:400 2.2rem/1.2 Georgia,serif; font-variant-numeric:tabular-nums; }
-.sub { color:var(--muted); font-size:.8rem; }
-.bad .num { color:var(--bad); } .warn .num { color:var(--warn); } .zero .num { color:var(--fg); }
-.box { max-height:28rem; overflow:auto; }
-table { width:100%; border-collapse:collapse; font-size:.8rem; font-variant-numeric:tabular-nums; }
-th { text-align:left; color:var(--muted); font-weight:600; position:sticky; top:0; background:var(--panel); padding:.35rem .5rem; border-bottom:1px solid var(--line); white-space:nowrap; }
-td { padding:.35rem .5rem; border-bottom:1px solid var(--line); vertical-align:top; overflow-wrap:anywhere; }
-td.n, th.n { text-align:right; }
-a { color:inherit; text-underline-offset:2px; }
-.muted { color:var(--muted); } .bad-t { color:var(--bad); } .warn-t { color:var(--warn); }
-.tag { color:var(--muted); font-size:.75rem; margin-left:.35rem; }
-.bar { height:4px; border-radius:2px; background:var(--bad); margin-top:4px; }
-</style>
-</head>
-<body>
-<main>
-  <h1>GitHub repos</h1>
-  <p class="lede" id="lede">Loading...</p>
-  <div class="tiles" id="tiles"></div>
-  <section class="card"><h2>All repos</h2>
-    <p class="note">Repos with the most open items first. "-" means Dependabot alerts are off. "Not checked" means the token could not read them.</p>
-    <div class="box"><table id="repos"></table></div></section>
-  <section class="card"><h2>Open pull requests</h2><div class="box"><table id="prs"></table></div></section>
-  <section class="card"><h2>Open issues</h2><div class="box"><table id="issues"></table></div></section>
-  <section class="card"><h2>Failed workflows</h2>
-    <p class="note">Latest run of each workflow, only when that run failed. Oldest first.</p>
-    <div class="box"><table id="failed"></table></div></section>
-</main>
-<script>
-const fmt = (n) => n.toLocaleString('en');
-function el(tag, props, ...kids) {
-  const e = document.createElement(tag);
-  Object.assign(e, props || {});
-  kids.flat().forEach((k) => e.append(k));
-  return e;
-}
-const link = (text, href) => el('a', { textContent: text, href, target: '_blank', rel: 'noopener' });
-function table(id, head, rows) {
-  const t = document.getElementById(id);
-  t.replaceChildren(
-    el('thead', {}, el('tr', {}, head.map(([h, cls]) => el('th', { textContent: h, className: cls || '' })))),
-    el('tbody', {}, rows.map((cells) => el('tr', {}, cells.map(([c, cls]) => el('td', { className: cls || '' }, c)))))
-  );
-}
-const ageDays = (iso) => Math.max(0, Math.floor((Date.now() - new Date(iso)) / 864e5));
-const ageText = (d) => d < 1 ? 'today' : d === 1 ? '1 day' : d < 60 ? d + ' days' : Math.round(d / 30) + ' months';
-
-fetch('data.json').then((r) => r.json()).then((data) => {
-  const repos = data.repos;
-  const sum = (f) => repos.reduce((a, r) => a + f(r), 0);
-  const checked = repos.filter((r) => r.dependabot.status === 'ok').length;
-  const t = {
-    prs: sum((r) => r.open_prs.length), issues: sum((r) => r.open_issues.length),
-    failed: sum((r) => r.failed_workflows.length), malware: sum((r) => r.dependabot.malware_alerts.length)
-  };
-  document.getElementById('lede').textContent =
-    `${fmt(repos.length)} repos. Data from ${new Date(data.generated_at).toUTCString()}.`;
-  const tile = (label, n, sub, cls) => el('div', { className: 'card ' + (n ? cls : 'zero') },
-    el('span', { className: 'label', textContent: label }), el('b', { className: 'num', textContent: fmt(n) }),
-    el('span', { className: 'sub', textContent: sub }));
-  document.getElementById('tiles').replaceChildren(
-    tile('Open pull requests', t.prs, 'across all repos', ''),
-    tile('Open issues', t.issues, 'pull requests excluded', ''),
-    tile('Failed workflows', t.failed, 'latest run per workflow', 'bad'),
-    tile('Dependabot malware alerts', t.malware, `${checked} repos checked, ${repos.length - checked} not checked`, 'warn'));
-
-  const score = (r) => r.open_prs.length + r.open_issues.length + r.failed_workflows.length + r.dependabot.malware_alerts.length;
-  const sorted = repos.slice().sort((a, b) => score(b) - score(a) || a.name.localeCompare(b.name));
-  table('repos', [['Repo'], ['Branches', 'n'], ['Open PRs', 'n'], ['Open issues', 'n'], ['Failed workflows', 'n'], ['Dependabot malware', 'n']],
-    sorted.map((r) => {
-      const tags = [r.private && 'private', r.fork && 'fork', r.archived && 'archived'].filter(Boolean).join(', ');
-      const d = r.dependabot;
-      const mal = d.status === 'ok' ? fmt(d.malware_alerts.length) : d.status === 'disabled' ? '-' : 'Not checked';
-      return [
-        [[link(r.name, r.html_url), tags ? el('span', { className: 'tag', textContent: tags }) : '']],
-        [link(fmt(r.branches.count), r.branches.url), 'n muted'],
-        [fmt(r.open_prs.length), 'n ' + (r.open_prs.length ? 'warn-t' : 'muted')],
-        [fmt(r.open_issues.length), 'n ' + (r.open_issues.length ? 'warn-t' : 'muted')],
-        [fmt(r.failed_workflows.length), 'n ' + (r.failed_workflows.length ? 'bad-t' : 'muted')],
-        [link(mal, d.url), 'n ' + (d.malware_alerts.length ? 'bad-t' : 'muted')]
-      ];
-    }));
-
-  const flat = (key) => repos.flatMap((r) => r[key].map((x) => ({ repo: r.name, ...x })));
-  table('prs', [['Repo'], ['Pull request']], flat('open_prs').map((p) =>
-    [[p.repo], [link(`#${p.number} ${p.title}${p.draft ? ' (draft)' : ''}`, p.url)]]));
-  table('issues', [['Repo'], ['Issue']], flat('open_issues').map((i) =>
-    [[i.repo], [link(`#${i.number} ${i.title}`, i.url)]]));
-  const failed = flat('failed_workflows').sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-  const maxAge = Math.max(1, ...failed.map((f) => ageDays(f.created_at)));
-  table('failed', [['Repo'], ['Workflow'], ['Branch'], ['Failing for (run date)']], failed.map((f) => {
-    const d = ageDays(f.created_at);
-    return [[f.repo], [link(f.workflow, f.url)], [f.branch], [[`${ageText(d)} (${f.created_at.slice(0, 10)})`,
-      Object.assign(el('div', { className: 'bar' }), { style: `width:${Math.max(2, Math.round(100 * d / maxAge))}%` })]]];
-  }));
-}).catch((e) => { document.getElementById('lede').textContent = 'Could not load data.json: ' + e.message; });
-</script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Daily dashboard of branches, pull requests, issues, failed workflows and security alerts across GitHub repositories.">
+    <title>GitHub repos</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="preload" href="./data.json" as="fetch" crossorigin="anonymous">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <h1>GitHub repos</h1>
+      <p class="lede" id="lede">Loading...</p>
+      <noscript><p class="lede">This dashboard needs JavaScript to show the report.</p></noscript>
+      <p class="banner" id="stale" role="alert" hidden></p>
+      <div id="content" hidden>
+        <div class="tiles" id="tiles"></div>
+        <section class="card" aria-labelledby="repos-title">
+          <h2 id="repos-title">All repos</h2>
+          <p class="note">Repos with the most open items first. A dash means the feature is off for that repo. "Not checked" means the token could not read it, and "Error" means GitHub's API failed. A "?" means that count could not be read.</p>
+          <div class="box"><table class="data-table" id="repos"></table></div>
+        </section>
+        <section class="card" aria-labelledby="prs-title">
+          <h2 id="prs-title">Open pull requests</h2>
+          <div class="box"><table class="data-table" id="prs"></table></div>
+        </section>
+        <section class="card" aria-labelledby="issues-title">
+          <h2 id="issues-title">Open issues</h2>
+          <div class="box"><table class="data-table" id="issues"></table></div>
+        </section>
+        <section class="card" aria-labelledby="failed-title">
+          <h2 id="failed-title">Failed workflows</h2>
+          <p class="note">Latest completed run of each workflow on the default branch, among the repo's last 100 runs, only when that run failed. Cancelled runs are ignored. Oldest first.</p>
+          <div class="box"><table class="data-table" id="failed"></table></div>
+        </section>
+      </div>
+    </main>
+    <script type="module" src="./index.js"></script>
+  </body>
 </html>

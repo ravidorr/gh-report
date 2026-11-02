@@ -1,0 +1,43 @@
+/* Data table: dense, sticky header, numeric columns right-aligned. */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+  vertical-align: top;
+}
+
+.data-table th.data-table-n,
+.data-table td.data-table-n {
+  text-align: right;
+}
+
+.data-table-muted {
+  color: var(--color-text-muted);
+}
+
+.data-table-warn {
+  color: var(--color-warning);
+}
+
+.data-table-bad {
+  color: var(--color-danger);
+}
