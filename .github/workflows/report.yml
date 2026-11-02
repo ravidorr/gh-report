@@ -1,0 +1,42 @@
+name: Repo report
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.REPORT_TOKEN }}
+      # Pages sites are public. Set to "true" only if you accept private repo names being published.
+      INCLUDE_PRIVATE: "false"
+      INCLUDE_FORKS: "true"
+      INCLUDE_ARCHIVED: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect data
+        run: bash gh-repo-report.sh site/data.json
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
