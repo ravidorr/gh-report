@@ -13,6 +13,10 @@ updates:
     ignore:
       - dependency-name: typescript
         update-types: ['version-update:semver-major']
+      # The types must describe the Node version the project runs on (engines: 24.x, see .nvmrc).
+      # A newer major describes APIs that Node 24 does not have. Bump it together with .nvmrc.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
