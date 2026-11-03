@@ -83,6 +83,16 @@ describe('renderTable empty state', () => {
     expect(cells[0]?.className).toBe('data-table-empty');
   });
 
+  it('renders plain header text, with nothing to click, so the message cannot be sorted away', () => {
+    document.body.innerHTML = '<table id="t"></table>';
+
+    renderTable(document, 't', [['A'], ['B', 'n']], [], 'No things.');
+
+    expect(document.querySelector('#t button')).toBeNull();
+    expect(document.getElementById('t')?.querySelector('thead')?.innerHTML).toBe('<tr><th class="">A</th><th class="n">B</th></tr>');
+    expect(document.querySelector('#t tbody')?.textContent).toBe('No things.');
+  });
+
   it('shows no message when there are rows', () => {
     document.body.innerHTML = '<table id="t"></table>';
 
@@ -147,5 +157,32 @@ describe('renderTable sorting', () => {
     click(0);
 
     expect(column()).toEqual(['c', 'b', 'a']);
+  });
+
+  it('compares numbers by value: decimals and negatives, which text order would get wrong', () => {
+    renderTable(document, 't', [['Name']], [[['a', '', 1.5]], [['b', '', 1.25]], [['c', '', -1]], [['d', '', 0]]], 'Nothing.');
+
+    click(0);
+
+    expect(column()).toEqual(['c', 'd', 'b', 'a']);
+  });
+
+  it('keeps equal values in their original order when descending too', () => {
+    renderTable(document, 't', [['Name']], [[['b', '', 1]], [['a', '', 1]], [['c', '', 0]]], 'Nothing.');
+
+    click(0);
+    click(0);
+
+    expect(column()).toEqual(['b', 'a', 'c']);
+  });
+
+  it('orders the rows by the newly clicked column, not on top of the previous sort', () => {
+    click(0);
+    click(1);
+
+    expect(column()).toEqual(['a10', 'a9', 'A', 'b', 'c']);
+    click(0);
+    expect(header(0).getAttribute('aria-sort')).toBe('ascending');
+    expect(column()).toEqual(['A', 'a9', 'a10', 'b', 'c']);
   });
 });

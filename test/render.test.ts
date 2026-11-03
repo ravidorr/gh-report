@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { renderDashboard } from '../src/render.js';
-import type { Report } from '../src/types.js';
+import type { FailedWorkflow, Report } from '../src/types.js';
 import { PAGE_HTML, makeReport, makeRepo, must, readSample } from './helpers.js';
 
 const NOW = Date.parse('2026-01-15T05:17:00Z');
@@ -117,6 +117,27 @@ describe('renderDashboard links and tones', () => {
     expect(hrefs('#failed tbody a')).toEqual([`${GH}/busy`, `${GH}/busy/actions/runs/1`, `${GH}/busy/tree/main`, `${GH}/busy/actions/runs/1`]);
   });
 
+  it('shows no link for a run that has no branch', () => {
+    const failure = { workflow: 'CI', conclusion: 'failure' as const, branch: '', created_at: '2026-01-14T00:00:00Z', url: `${GH}/x/actions/runs/1` };
+
+    renderDashboard(document, makeReport([makeRepo('x', { failed_workflows: [failure] })]), NOW);
+
+    expect(hrefs('#failed tbody a')).toEqual([`${GH}/x`, `${GH}/x/actions/runs/1`, `${GH}/x/actions/runs/1`]);
+    expect(rows('failed')[0]?.[2]).toBe('');
+  });
+
+  it('keeps "?" cells linked to the same page as real counts', () => {
+    const blind = makeRepo('blind', {
+      branches: { count: null, url: `${GH}/blind/branches` },
+      collection_errors: ['branches', 'pulls', 'issues', 'runs'],
+    });
+
+    renderDashboard(document, makeReport([blind]), NOW);
+
+    expect(hrefs('#repos tbody a').slice(0, 4)).toEqual([`${GH}/blind`, `${GH}/blind/pulls`, `${GH}/blind/issues`, `${GH}/blind/actions?query=is%3Afailure`]);
+    expect(hrefs('#repos tbody a').at(-1)).toBe(`${GH}/blind/branches`);
+  });
+
   it('keeps slashes in branch names as path separators and escapes the rest', () => {
     const failure = { workflow: 'CI', conclusion: 'failure' as const, branch: 'feature/a b#1', created_at: '2026-01-14T00:00:00Z', url: `${GH}/x/actions/runs/1` };
 
@@ -155,6 +176,54 @@ describe('renderDashboard links and tones', () => {
       'data-table-n data-table-bad',
       'data-table-n data-table-muted',
     ]);
+  });
+});
+
+describe('renderDashboard sorting', () => {
+  const header = (table: string, label: string): HTMLButtonElement =>
+    must([...document.querySelectorAll<HTMLButtonElement>(`#${table} th button`)].find((b) => b.textContent === label));
+  const names = (): string[] => text('#repos tbody td:first-child a');
+
+  it.each([
+    ['Open PRs', ['example-lib', 'example-site', 'example-app']],
+    ['Dependabot', ['example-lib', 'example-site', 'example-app']],
+    ['Secret scanning', ['example-lib', 'example-app', 'example-site']],
+    ['Branches', ['example-lib', 'example-site', 'example-app']],
+  ])('sorts the repos table by %s, with unreadable values lowest', (label, expected) => {
+    renderDashboard(document, sample, NOW);
+
+    header('repos', label).click();
+
+    expect(names()).toEqual(expected);
+  });
+
+  it('puts a repo whose branches could not be counted below the others', () => {
+    const known = makeRepo('known', { branches: { count: 5, url: `${GH}/known/branches` } });
+    const unknown = makeRepo('unknown', { branches: { count: null, url: `${GH}/unknown/branches` }, collection_errors: ['branches'] });
+
+    renderDashboard(document, makeReport([known, unknown]), NOW);
+    header('repos', 'Branches').click();
+
+    expect(names()).toEqual(['unknown', 'known']);
+  });
+
+  it('sorts the repo column by name, not by the tag next to it', () => {
+    const tagged = makeRepo('app', { archived: true });
+
+    renderDashboard(document, makeReport([makeRepo('app2'), tagged]), NOW);
+    header('repos', 'Repo').click();
+
+    expect(names()).toEqual(['app', 'app2']);
+  });
+
+  it('sorts failed runs by their date, not by the "days ago" text', () => {
+    const failure = (created_at: string): FailedWorkflow => ({ workflow: 'CI', conclusion: 'failure', branch: 'main', created_at, url: `${GH}/a/actions/runs/1` });
+
+    renderDashboard(document, makeReport([makeRepo('a', { failed_workflows: [failure('2026-01-14T00:00:00Z'), failure('2025-01-15T00:00:00Z')] })]), NOW);
+    header('failed', 'Latest failed run').click();
+    header('failed', 'Latest failed run').click();
+
+    expect(text('#failed tbody tr td:last-child a')).toEqual(['1 day ago (2026-01-14)', '12 months ago (2025-01-15)']);
   });
 });
 
@@ -234,6 +303,7 @@ describe('renderDashboard edge cases', () => {
     renderDashboard(document, makeReport(), NOW);
 
     expect(text('#repos .data-table-empty')).toEqual(['No repos.']);
+    expect(document.querySelector<HTMLTableCellElement>('#repos .data-table-empty')?.colSpan).toBe(8);
   });
 
   it('renders empty tables and a scale of at least one day when nothing failed', () => {

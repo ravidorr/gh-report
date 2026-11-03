@@ -6,12 +6,13 @@ All notable changes are documented here. Format follows [Keep a Changelog](https
 
 ### Added
 
-- Sort any table column A-Z, Z-A, or back to the original order by clicking its header.
-- An empty state for tables with no rows ("No open issues.", "No failed workflows."), so an empty table no longer looks broken.
+- Sort any table column ascending, descending, or back to the original order by clicking its header.
+- An empty state for tables with no rows ("No open issues.", "No failed workflows."), so an empty table no longer looks broken. Their headers are plain text, since there is nothing to sort.
 
 ### Changed
 
 - Every value in the repo table now links to its page: open PRs, open issues and failed workflows join the branch and alert counts. The repo, workflow, branch and run in the other tables link too.
+- A failed run without a branch name shows no branch link.
 - The Branches column is now the last column of the repo table.
 - The explanation of dashes, "Not checked", "Error" and "?" moved below the repo table.
 

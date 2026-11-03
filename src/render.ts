@@ -41,7 +41,7 @@ function renderTiles(doc: Document, repos: Repo[]): void {
   );
 }
 
-/** Sorts below every real count, so "?", "-", "Not checked" and "Error" group together at the low end. */
+/** Sorts below every real count (those are always >= 0), so "?", "-", "Not checked" and "Error" group at the low end. */
 const NO_COUNT = -1;
 
 /** A count cell linking to `url`: "?" when the request failed (never 0), otherwise the number, toned when non-zero. */
@@ -63,12 +63,16 @@ function branchUrl(repoUrl: string, branch: string): string {
   return `${repoUrl}/tree/${branch.split('/').map(encodeURIComponent).join('/')}`;
 }
 
+function repoLink(doc: Document, repo: Repo): HTMLAnchorElement {
+  return link(doc, repo.name, repo.html_url);
+}
+
 function repoRow(doc: Document, repo: Repo): Cell[] {
   const tags = [repo.private && 'private', repo.fork && 'fork', repo.archived && 'archived']
     .filter(Boolean)
     .join(', ');
   return [
-    [[link(doc, repo.name, repo.html_url), tags ? el(doc, 'span', { className: 'tag', textContent: tags }) : ''], '', repo.name],
+    [[repoLink(doc, repo), tags ? el(doc, 'span', { className: 'tag', textContent: tags }) : ''], '', repo.name],
     countCell(doc, repo, 'pulls', repo.open_prs.length, 'data-table-warn', `${repo.html_url}/pulls`),
     countCell(doc, repo, 'issues', repo.open_issues.length, 'data-table-warn', `${repo.html_url}/issues`),
     countCell(doc, repo, 'runs', repo.failed_workflows.length, 'data-table-bad', `${repo.html_url}/actions?query=is%3Afailure`),
@@ -109,7 +113,7 @@ function renderLists(doc: Document, repos: Repo[]): void {
     [['Repo'], ['Pull request']],
     repos.flatMap((r) =>
       r.open_prs.map((p): Cell[] => [
-        [link(doc, r.name, r.html_url)],
+        [repoLink(doc, r)],
         [link(doc, `#${String(p.number)} ${p.title}${p.draft ? ' (draft)' : ''}`, p.url)],
       ]),
     ),
@@ -120,7 +124,7 @@ function renderLists(doc: Document, repos: Repo[]): void {
     'issues',
     [['Repo'], ['Issue']],
     repos.flatMap((r) =>
-      r.open_issues.map((i): Cell[] => [[link(doc, r.name, r.html_url)], [link(doc, `#${String(i.number)} ${i.title}`, i.url)]]),
+      r.open_issues.map((i): Cell[] => [[repoLink(doc, r)], [link(doc, `#${String(i.number)} ${i.title}`, i.url)]]),
     ),
     'No open issues.',
   );
@@ -128,7 +132,7 @@ function renderLists(doc: Document, repos: Repo[]): void {
 
 function renderFailed(doc: Document, repos: Repo[], now: number): void {
   const failed = repos
-    .flatMap((r) => r.failed_workflows.map((f): FailedWorkflow & { repo: string; repoUrl: string } => ({ ...f, repo: r.name, repoUrl: r.html_url })))
+    .flatMap((repo) => repo.failed_workflows.map((f): FailedWorkflow & { repo: Repo } => ({ ...f, repo })))
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   const maxAge = Math.max(1, ...failed.map((f) => ageDays(f.created_at, now)));
   renderTable(
@@ -140,9 +144,10 @@ function renderFailed(doc: Document, repos: Repo[], now: number): void {
       const bar = el(doc, 'div', { className: 'bar' });
       bar.style.width = `${String(Math.max(2, Math.round((100 * days) / maxAge)))}%`;
       return [
-        [link(doc, f.repo, f.repoUrl)],
+        [repoLink(doc, f.repo)],
         [link(doc, f.workflow, f.url)],
-        [link(doc, f.branch, branchUrl(f.repoUrl, f.branch))],
+        // A run without a branch (the collector writes "") has no page to link to.
+        [f.branch ? link(doc, f.branch, branchUrl(f.repo.html_url, f.branch)) : ''],
         [[link(doc, `${ageText(days)} ago (${f.created_at.slice(0, 10)})`, f.url), bar], '', new Date(f.created_at).getTime()],
       ];
     }),

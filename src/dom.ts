@@ -1,6 +1,10 @@
 export type Content = Node | string;
-/** What a column is sorted by: numbers numerically, strings alphabetically. Defaults to the cell's text. */
+/**
+ * The key a cell sorts by. Two numbers compare numerically; any other pair compares as case-insensitive,
+ * numeric-aware text. Keep one kind per column. Defaults to the cell's text content.
+ */
 export type SortValue = string | number;
+/** `[content, className?, sortValue?]`. */
 export type Cell = readonly [content: Content | readonly Content[], className?: string, sortValue?: SortValue];
 export type HeadCell = readonly [label: string, className?: string];
 
@@ -35,46 +39,56 @@ export function link(doc: Document, text: string, href: string): HTMLAnchorEleme
 
 type SortDirection = 'ascending' | 'descending' | 'none';
 
-/** Clicking a header cycles through these: A-Z, then Z-A, then back to the original order. */
+/** Clicking a header cycles through these: ascending, descending, then back to the original order. */
 const NEXT_DIRECTION: Record<SortDirection, SortDirection> = { none: 'ascending', ascending: 'descending', descending: 'none' };
+
+interface SortableColumn {
+  header: HTMLTableCellElement;
+  button: HTMLButtonElement;
+  direction: SortDirection;
+}
 
 interface SortableRow {
   row: HTMLTableRowElement;
-  keys: readonly (SortValue | null)[];
+  keys: readonly SortValue[];
 }
 
-function compareValues(a: SortValue | null | undefined, b: SortValue | null | undefined): number {
+function compareValues(a: SortValue | undefined, b: SortValue | undefined): number {
   if (typeof a === 'number' && typeof b === 'number') {
     return a - b;
   }
   return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
 }
 
-/** Make every header a button that sorts the body rows. The original order is kept so "none" can restore it. */
-function makeSortable(headers: readonly HTMLTableCellElement[], body: HTMLTableSectionElement, entries: readonly SortableRow[]): void {
-  headers.forEach((header, column) => {
-    header.setAttribute('aria-sort', 'none');
-    header.querySelector('button')?.addEventListener('click', () => {
-      const next = NEXT_DIRECTION[header.getAttribute('aria-sort') as SortDirection];
-      for (const other of headers) {
-        other.setAttribute('aria-sort', 'none');
+function setDirection(column: SortableColumn, direction: SortDirection): void {
+  column.direction = direction;
+  column.header.setAttribute('aria-sort', direction);
+}
+
+/** Wire each header button to sort the body rows. The original order is kept in `entries`, so "none" can restore it. */
+function makeSortable(columns: readonly SortableColumn[], body: HTMLTableSectionElement, entries: readonly SortableRow[]): void {
+  columns.forEach((column, index) => {
+    setDirection(column, 'none');
+    column.button.addEventListener('click', () => {
+      const next = NEXT_DIRECTION[column.direction];
+      for (const other of columns) {
+        setDirection(other, 'none');
       }
-      header.setAttribute('aria-sort', next);
+      setDirection(column, next);
       const factor = next === 'descending' ? -1 : 1;
-      const ordered = entries.slice();
-      if (next !== 'none') {
-        // Array.prototype.sort is stable, so equal values keep their original relative order.
-        ordered.sort((a, b) => factor * compareValues(a.keys[column], b.keys[column]));
-      }
+      // toSorted is stable, so equal values keep their original relative order.
+      const ordered = next === 'none' ? entries : entries.toSorted((a, b) => factor * compareValues(a.keys[index], b.keys[index]));
       body.replaceChildren(...ordered.map((entry) => entry.row));
     });
   });
 }
 
 /**
- * Replace the contents of the `<table>` with the given id by a header row and body rows. Each header is a
- * button that sorts the column A-Z, Z-A, then back to the original order. With no rows, a single
- * `emptyMessage` row spans the table, so an empty table reads as "nothing here" and not as a failure.
+ * Replace the contents of the `<table>` with the given id by a header row and body rows. A row needs one
+ * cell per header (it throws otherwise); a cell's optional third element is the key its column sorts by.
+ * With rows, each header is a button that sorts its column ascending, descending, then back to the
+ * original order. With no rows, a single `emptyMessage` row spans the table and the headers are plain
+ * text, so an empty table reads as "nothing here" and not as a failure.
  */
 export function renderTable(
   doc: Document,
@@ -92,11 +106,6 @@ export function renderTable(
       throw new Error(`Table #${id}: row ${String(index)} has ${String(cells.length)} cells, expected ${String(head.length)}`);
     }
   });
-  const headers = head.map(([label, className]) => {
-    const button = el(doc, 'button', { className: 'data-table-sort', textContent: label });
-    button.type = 'button';
-    return el(doc, 'th', { className: className ?? '' }, button);
-  });
   const entries = rows.map((cells): SortableRow => {
     const built = cells.map(([content, className, sortValue]) => {
       const td = el(doc, 'td', { className: className ?? '' }, content);
@@ -109,7 +118,17 @@ export function renderTable(
     const empty = el(doc, 'td', { className: 'data-table-empty', textContent: emptyMessage });
     empty.colSpan = head.length;
     body.append(el(doc, 'tr', {}, empty));
+    table.replaceChildren(
+      el(doc, 'thead', {}, el(doc, 'tr', {}, head.map(([label, className]) => el(doc, 'th', { className: className ?? '', textContent: label })))),
+      body,
+    );
+    return;
   }
-  makeSortable(headers, body, entries);
-  table.replaceChildren(el(doc, 'thead', {}, el(doc, 'tr', {}, headers)), body);
+  const columns = head.map(([label, className]): SortableColumn => {
+    const button = el(doc, 'button', { className: 'data-table-sort', textContent: label });
+    button.type = 'button';
+    return { header: el(doc, 'th', { className: className ?? '' }, button), button, direction: 'none' };
+  });
+  makeSortable(columns, body, entries);
+  table.replaceChildren(el(doc, 'thead', {}, el(doc, 'tr', {}, columns.map((column) => column.header))), body);
 }
