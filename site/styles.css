@@ -34,6 +34,10 @@ h2 {
   font-size: var(--font-size-sm);
 }
 
+.note-below {
+  margin: var(--space-2) 0 0;
+}
+
 .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));

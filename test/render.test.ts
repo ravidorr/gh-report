@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { renderDashboard } from '../src/render.js';
 import type { Report } from '../src/types.js';
-import { PAGE_HTML, makeReport, makeRepo, readSample } from './helpers.js';
+import { PAGE_HTML, makeReport, makeRepo, must, readSample } from './helpers.js';
 
 const NOW = Date.parse('2026-01-15T05:17:00Z');
 const sample = JSON.parse(readSample()) as Report;
@@ -62,17 +62,17 @@ describe('renderDashboard with the sample report', () => {
 
   it('sorts repos by what needs attention and shows unreadable data as such', () => {
     expect(rows('repos')).toEqual([
-      ['example-app', '3', '2', '1', '1', '1', '1', '0'],
-      ['example-lib', '1', '0', '0', '?', '-', '-', 'Not checked'],
-      ['example-site', '1', '0', '0', '0', '0', '0', '0'],
+      ['example-app', '2', '1', '1', '1', '1', '0', '3'],
+      ['example-lib', '0', '0', '?', '-', '-', 'Not checked', '1'],
+      ['example-site', '0', '0', '0', '0', '0', '0', '1'],
     ]);
   });
 
   it('lists pull requests and issues with draft markers and their own links', () => {
-    expect(text('#prs tbody a')).toEqual(['#4 Add feature (draft)', '#5 Fix bug']);
-    expect(hrefs('#prs tbody a')).toEqual([`${GH}/example-app/pull/4`, `${GH}/example-app/pull/5`]);
-    expect(text('#issues tbody a')).toEqual(['#2 Crash on start']);
-    expect(hrefs('#issues tbody a')).toEqual([`${GH}/example-app/issues/2`]);
+    expect(text('#prs tbody a')).toEqual(['example-app', '#4 Add feature (draft)', 'example-app', '#5 Fix bug']);
+    expect(hrefs('#prs tbody a')).toEqual([`${GH}/example-app`, `${GH}/example-app/pull/4`, `${GH}/example-app`, `${GH}/example-app/pull/5`]);
+    expect(text('#issues tbody a')).toEqual(['example-app', '#2 Crash on start']);
+    expect(hrefs('#issues tbody a')).toEqual([`${GH}/example-app`, `${GH}/example-app/issues/2`]);
   });
 
   it('shows failed workflows with their age and a bar scaled to the oldest', () => {
@@ -96,15 +96,50 @@ describe('renderDashboard links and tones', () => {
     renderDashboard(document, makeReport([busy]), NOW);
   });
 
-  it('links the repo, its branches, and each alert column to the right page', () => {
+  it('links every value in the repos table to the right page, with branches last', () => {
+    expect(text('#repos thead th').at(-1)).toBe('Branches');
     expect(hrefs('#repos tbody a')).toEqual([
       `${GH}/busy`,
-      `${GH}/busy/branches`,
+      `${GH}/busy/pulls`,
+      `${GH}/busy/issues`,
+      `${GH}/busy/actions?query=is%3Afailure`,
       `${GH}/busy/security/dependabot`,
       `${GH}/busy/security/code-scanning`,
       `${GH}/busy/security/secret-scanning`,
+      `${GH}/busy/branches`,
     ]);
-    expect(document.querySelector('#failed tbody a')?.getAttribute('href')).toBe(`${GH}/busy/actions/runs/1`);
+    expect(document.querySelectorAll('#repos tbody td:not(:has(a))')).toHaveLength(0);
+  });
+
+  it('links the repo, workflow, branch and run in the other tables', () => {
+    expect(hrefs('#prs tbody a')).toEqual([`${GH}/busy`, `${GH}/busy/pull/1`]);
+    expect(hrefs('#issues tbody a')).toEqual([`${GH}/busy`, `${GH}/busy/issues/2`]);
+    expect(hrefs('#failed tbody a')).toEqual([`${GH}/busy`, `${GH}/busy/actions/runs/1`, `${GH}/busy/tree/main`, `${GH}/busy/actions/runs/1`]);
+  });
+
+  it('keeps slashes in branch names as path separators and escapes the rest', () => {
+    const failure = { workflow: 'CI', conclusion: 'failure' as const, branch: 'feature/a b#1', created_at: '2026-01-14T00:00:00Z', url: `${GH}/x/actions/runs/1` };
+
+    renderDashboard(document, makeReport([makeRepo('x', { failed_workflows: [failure] })]), NOW);
+
+    expect(hrefs('#failed tbody a')[2]).toBe(`${GH}/x/tree/feature/a%20b%231`);
+  });
+
+  it('sorts the repos table by count, putting unreadable values lowest, and restores the original order', () => {
+    renderDashboard(document, sample, NOW);
+    const header = (label: string): HTMLButtonElement =>
+      must([...document.querySelectorAll<HTMLButtonElement>('#repos th button')].find((b) => b.textContent === label));
+    const names = (): string[] => rows('repos').map((r) => must(r[0]));
+
+    header('Failed workflows').click();
+    expect(names()).toEqual(['example-lib', 'example-site', 'example-app']);
+    header('Failed workflows').click();
+    expect(names()).toEqual(['example-app', 'example-site', 'example-lib']);
+    header('Failed workflows').click();
+    expect(names()).toEqual(['example-app', 'example-lib', 'example-site']);
+    header('Repo').click();
+    header('Repo').click();
+    expect(names()).toEqual(['example-site', 'example-lib', 'example-app']);
   });
 
   it('tones each column: warnings for PRs, issues, and Dependabot or code alerts; errors for failures and secrets', () => {
@@ -112,13 +147,13 @@ describe('renderDashboard links and tones', () => {
 
     expect(classes).toEqual([
       '',
+      'data-table-n data-table-warn',
+      'data-table-n data-table-warn',
+      'data-table-n data-table-bad',
+      'data-table-n data-table-warn',
+      'data-table-n data-table-warn',
+      'data-table-n data-table-bad',
       'data-table-n data-table-muted',
-      'data-table-n data-table-warn',
-      'data-table-n data-table-warn',
-      'data-table-n data-table-bad',
-      'data-table-n data-table-warn',
-      'data-table-n data-table-warn',
-      'data-table-n data-table-bad',
     ]);
   });
 });
@@ -133,7 +168,7 @@ describe('renderDashboard with data that could not be read', () => {
 
     renderDashboard(document, makeReport([repo]), NOW);
 
-    expect(rows('repos')).toEqual([['blind', '?', '?', '?', '?', 'Error', '0', '0']]);
+    expect(rows('repos')).toEqual([['blind', '?', '?', '?', 'Error', '0', '0', '?']]);
     expect(text('#repos tbody td.data-table-warn')).toEqual(['?', '?', '?', 'Error']);
   });
 
@@ -186,11 +221,26 @@ describe('renderDashboard edge cases', () => {
     expect(document.querySelector('#repos .tag')?.textContent).toBe('private, fork, archived');
   });
 
+  it('says so in each table that has nothing to list', () => {
+    renderDashboard(document, makeReport([makeRepo('quiet')]), NOW);
+
+    expect(text('#prs .data-table-empty')).toEqual(['No open pull requests.']);
+    expect(text('#issues .data-table-empty')).toEqual(['No open issues.']);
+    expect(text('#failed .data-table-empty')).toEqual(['No failed workflows.']);
+    expect(text('#repos .data-table-empty')).toEqual([]);
+  });
+
+  it('says there are no repos when the report is empty', () => {
+    renderDashboard(document, makeReport(), NOW);
+
+    expect(text('#repos .data-table-empty')).toEqual(['No repos.']);
+  });
+
   it('renders empty tables and a scale of at least one day when nothing failed', () => {
     renderDashboard(document, makeReport(), NOW);
 
     expect(document.getElementById('lede')?.textContent).toContain('0 repos');
-    expect(document.querySelectorAll('#failed tbody tr')).toHaveLength(0);
+    expect(document.querySelectorAll('#failed tbody a')).toHaveLength(0);
   });
 
   it('gives a fresh failure a visible minimum bar', () => {
@@ -214,7 +264,7 @@ describe('renderDashboard edge cases', () => {
     renderDashboard(document, makeReport([repo]), NOW);
 
     expect(document.querySelector('img, svg, script, #repos b, #failed i')).toBeNull();
-    expect(text('#prs tbody a')).toEqual([`#1 ${hostile}`]);
+    expect(text('#prs tbody a')).toEqual(['<b>x</b>', `#1 ${hostile}`]);
     expect(text('#repos tbody a')[0]).toBe('<b>x</b>');
   });
 

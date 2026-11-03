@@ -41,3 +41,34 @@
 .data-table-bad {
   color: var(--color-danger);
 }
+
+/* Sortable header: the label is a button; aria-sort on the th drives the arrow. */
+.data-table-sort {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.data-table-sort:hover,
+.data-table-sort:focus-visible {
+  text-decoration: underline;
+}
+
+.data-table th[aria-sort="ascending"] .data-table-sort::after {
+  content: " \25B2";
+}
+
+.data-table th[aria-sort="descending"] .data-table-sort::after {
+  content: " \25BC";
+}
+
+/* Empty state: one message row spanning the table, so no rows reads as "nothing here". */
+.data-table td.data-table-empty {
+  padding: var(--space-2);
+  color: var(--color-text-muted);
+  font-style: italic;
+  text-align: center;
+}

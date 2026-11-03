@@ -2,6 +2,19 @@
 
 All notable changes are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-11-03
+
+### Added
+
+- Sort any table column A-Z, Z-A, or back to the original order by clicking its header.
+- An empty state for tables with no rows ("No open issues.", "No failed workflows."), so an empty table no longer looks broken.
+
+### Changed
+
+- Every value in the repo table now links to its page: open PRs, open issues and failed workflows join the branch and alert counts. The repo, workflow, branch and run in the other tables link too.
+- The Branches column is now the last column of the repo table.
+- The explanation of dashes, "Not checked", "Error" and "?" moved below the repo table.
+
 ## [0.2.1] - 2026-11-02
 
 ### Security
