@@ -46,3 +46,11 @@ export const PAGE_HTML = `
     <table id="issues"></table>
     <table id="failed"></table>
   </div>`;
+
+/** The value itself; throws when a test's lookup found nothing, so a typo fails loudly instead of passing on `undefined`. */
+export function must<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) {
+    throw new Error('Expected a value, found none');
+  }
+  return value;
+}
