@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-11-10
+
+### Changed
+
+- Updated the dev tooling to Stylelint 18 and `stylelint-config-standard` 41. The two must move together, because the config's peer range only accepts the matching Stylelint major.
+
 ## [0.3.0] - 2026-11-03
 
 ### Added
