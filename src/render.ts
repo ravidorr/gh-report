@@ -130,6 +130,34 @@ function renderLists(doc: Document, repos: Repo[]): void {
   );
 }
 
+/** Most severe first; unknown or missing severities sort last. */
+const SEVERITY_RANK: Readonly<Record<string, number>> = { critical: 0, high: 1, medium: 2, low: 3 };
+
+function severityRank(severity: string | null | undefined): number {
+  return SEVERITY_RANK[severity ?? ''] ?? Object.keys(SEVERITY_RANK).length;
+}
+
+function renderDependabot(doc: Document, repos: Repo[]): void {
+  const alerts = repos
+    .flatMap((repo) => repo.dependabot.alerts.map((alert) => ({ alert, repo })))
+    .sort((a, b) => severityRank(a.alert.severity) - severityRank(b.alert.severity));
+  renderTable(
+    doc,
+    'dependabot',
+    [['Repo'], ['Alert'], ['Ecosystem'], ['Severity', 'data-table-n']],
+    alerts.map(({ alert, repo }): Cell[] => {
+      const malware = alert.classification === 'malware';
+      return [
+        [repoLink(doc, repo)],
+        [[link(doc, alert.package ?? `#${String(alert.number)}`, alert.url), malware ? el(doc, 'span', { className: 'tag', textContent: 'malware' }) : '']],
+        [alert.ecosystem ?? ''],
+        [alert.severity ?? '', 'data-table-n', severityRank(alert.severity)],
+      ];
+    }),
+    'No open Dependabot alerts.',
+  );
+}
+
 function renderFailed(doc: Document, repos: Repo[], now: number): void {
   const failed = repos
     .flatMap((repo) => repo.failed_workflows.map((f): FailedWorkflow & { repo: Repo } => ({ ...f, repo })))
@@ -174,6 +202,7 @@ export function renderDashboard(doc: Document, report: Report, now: number): voi
   renderTiles(doc, repos);
   renderRepos(doc, repos);
   renderLists(doc, repos);
+  renderDependabot(doc, repos);
   renderFailed(doc, repos, now);
   // Revealed only once everything is rendered, so nothing on the page shifts while data arrives.
   byId(doc, 'content').hidden = false;

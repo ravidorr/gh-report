@@ -296,7 +296,42 @@ describe('renderDashboard edge cases', () => {
     expect(text('#prs .data-table-empty')).toEqual(['No open pull requests.']);
     expect(text('#issues .data-table-empty')).toEqual(['No open issues.']);
     expect(text('#failed .data-table-empty')).toEqual(['No failed workflows.']);
+    expect(text('#dependabot .data-table-empty')).toEqual(['No open Dependabot alerts.']);
     expect(text('#repos .data-table-empty')).toEqual([]);
+  });
+
+  it('lists Dependabot alerts most severe first, flags malware, and copes with missing details', () => {
+    const alert = (number: number, extra: Record<string, string | null>): Report['repos'][number]['dependabot']['alerts'][number] => ({
+      number,
+      url: `${GH}/x/security/dependabot/${String(number)}`,
+      ...extra,
+    });
+    const dependabot = {
+      status: 'ok' as const,
+      message: '',
+      malware_alerts: [],
+      url: `${GH}/x/security/dependabot`,
+      alerts: [
+        alert(1, { package: 'lodash', ecosystem: 'npm', severity: 'low' }),
+        alert(2, { package: 'evil', ecosystem: 'npm', severity: 'critical', classification: 'malware' }),
+        alert(3, {}),
+        alert(4, { package: 'pip-thing', ecosystem: null, severity: 'weird' }),
+      ],
+    };
+    renderDashboard(document, makeReport([makeRepo('x', { dependabot })]), NOW);
+
+    expect(rows('dependabot')).toEqual([
+      ['x', 'evilmalware', 'npm', 'critical'],
+      ['x', 'lodash', 'npm', 'low'],
+      ['x', '#3', '', ''],
+      ['x', 'pip-thing', '', 'weird'],
+    ]);
+    expect(hrefs('#dependabot tbody a')).toEqual([
+      `${GH}/x`, `${GH}/x/security/dependabot/2`,
+      `${GH}/x`, `${GH}/x/security/dependabot/1`,
+      `${GH}/x`, `${GH}/x/security/dependabot/3`,
+      `${GH}/x`, `${GH}/x/security/dependabot/4`,
+    ]);
   });
 
   it('says there are no repos when the report is empty', () => {

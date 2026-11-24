@@ -44,6 +44,7 @@ export const PAGE_HTML = `
     <table id="repos"></table>
     <table id="prs"></table>
     <table id="issues"></table>
+    <table id="dependabot"></table>
     <table id="failed"></table>
   </div>`;
 
