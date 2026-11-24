@@ -31,6 +31,7 @@ export interface FailedWorkflow {
 
 // Alerts always carry `number` and `url`. The other fields are omitted when the collector runs with
 // `ALERT_DETAILS=false` (see `Report.alert_details`), and GitHub can send null for any of them.
+// Exception: Dependabot alerts of public repos keep `package`, `ecosystem` and `severity` even then.
 
 export interface DependabotAlert {
   number: number;
@@ -72,7 +73,7 @@ interface ScanBlock<TAlert> {
 
 export interface Dependabot extends ScanBlock<DependabotAlert> {
   /** A subset of `alerts`, not additional ones. */
-  malware_alerts: Pick<DependabotAlert, 'number' | 'url' | 'package' | 'ecosystem' | 'summary'>[];
+  malware_alerts: Pick<DependabotAlert, 'number' | 'url' | 'package' | 'ecosystem' | 'severity' | 'summary'>[];
 }
 
 export type CodeScanning = ScanBlock<CodeScanningAlert>;
@@ -100,7 +101,7 @@ export interface Repo {
 
 export interface Report {
   schema_version: 1;
-  /** False when alerts were reduced to number and url. */
+  /** False when alerts were reduced to number and url (Dependabot alerts of public repos also keep package, ecosystem and severity). */
   alert_details: boolean;
   generated_at: string;
   repos: Repo[];

@@ -42,6 +42,17 @@ describe('parseReport', () => {
     expect(() => parseReport(value)).toThrow('the report should be an object');
   });
 
+  it.each([['omitted', REMOVE], ['null', null]])('accepts Dependabot text fields that are %s', (_label, value) => {
+    expect(() => parseReport(changed('repos.0.dependabot.alerts.0.severity', value))).not.toThrow();
+  });
+
+  it.each([
+    ['text fields omitted', { number: 1, url: 'https://github.com/x/y' }],
+    ['null text fields', { number: 1, url: 'https://github.com/x/y', package: null, ecosystem: null, severity: null }],
+  ])('accepts a malware alert with %s', (_label, alert) => {
+    expect(() => parseReport(changed('repos.0.dependabot.malware_alerts', [alert]))).not.toThrow();
+  });
+
   it('explains how to fix a file from an older collector', () => {
     expect(() => parseReport(changed('schema_version', REMOVE))).toThrow('older collector');
   });
@@ -70,6 +81,10 @@ describe('parseReport', () => {
     ['alerts that are not an array', 'repos.0.secret_scanning.alerts', null, 'secret_scanning.alerts should be an array'],
     ['an alert without a link', 'repos.0.dependabot.alerts.0.url', REMOVE, 'dependabot.alerts[0].url'],
     ['an alert without a number', 'repos.0.code_scanning.alerts.0.number', 'x', 'code_scanning.alerts[0].number'],
+    ['a non-string Dependabot package', 'repos.0.dependabot.alerts.0.package', 5, 'dependabot.alerts[0].package should be a string'],
+    ['a non-string Dependabot ecosystem', 'repos.0.dependabot.alerts.0.ecosystem', {}, 'dependabot.alerts[0].ecosystem should be a string'],
+    ['a non-string Dependabot severity', 'repos.0.dependabot.alerts.0.severity', false, 'dependabot.alerts[0].severity should be a string'],
+    ['a non-string malware alert severity', 'repos.0.dependabot.malware_alerts', [{ number: 1, url: 'https://github.com/x/y', severity: 1 }], 'dependabot.malware_alerts[0].severity should be a string'],
     ['missing malware alerts', 'repos.0.dependabot.malware_alerts', REMOVE, 'dependabot.malware_alerts should be an array'],
     ['a missing scan block', 'repos.2.code_scanning', REMOVE, 'repos[2].code_scanning should be an object'],
   ])('rejects %s and names the path', (_label, path, value, message) => {

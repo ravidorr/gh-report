@@ -140,7 +140,7 @@ function severityRank(severity: string | null | undefined): number {
 function renderDependabot(doc: Document, repos: Repo[]): void {
   const alerts = repos
     .flatMap((repo) => {
-      // `malware_alerts` survives ALERT_DETAILS=false (alerts are cut to number and url, so `classification` is gone).
+      // `malware_alerts` survives ALERT_DETAILS=false (alerts are cut to number and url, plus package, ecosystem and severity for public repos, so `classification` is gone).
       const malwareNumbers = new Set(repo.dependabot.malware_alerts.map((a) => a.number));
       return repo.dependabot.alerts.map((alert) => ({
         alert,
@@ -154,7 +154,7 @@ function renderDependabot(doc: Document, repos: Repo[]): void {
   renderTable(
     doc,
     'dependabot',
-    [['Repo'], ['Alert'], ['Ecosystem'], ['Severity', 'data-table-n']],
+    [['Repo'], ['Package'], ['Ecosystem'], ['Severity', 'data-table-n']],
     alerts.map(({ alert, repo, malware }): Cell[] => [
       [repoLink(doc, repo)],
       [[link(doc, alert.package ?? `#${String(alert.number)}`, alert.url), malware ? el(doc, 'span', { className: 'tag', textContent: 'malware' }) : '']],
