@@ -55,21 +55,34 @@ function each<T>(value: unknown, path: string, check: (item: Json, itemPath: str
   });
 }
 
-function alerts(value: unknown, path: string): void {
+/** A field the collector may omit (ALERT_DETAILS=false) or GitHub may send as null. */
+function optionalString(value: unknown, path: string): void {
+  if (value !== undefined && value !== null) {
+    string(value, path);
+  }
+}
+
+function alerts(value: unknown, path: string, textFields: readonly string[] = []): void {
   each(value, path, (alert, alertPath) => {
     number(alert.number, `${alertPath}.number`);
     githubUrl(alert.url, `${alertPath}.url`);
+    textFields.forEach((field) => {
+      optionalString(alert[field], `${alertPath}.${field}`);
+    });
   });
 }
+
+/** The Dependabot table shows these, and they survive ALERT_DETAILS=false for public repos. */
+const DEPENDABOT_TEXT_FIELDS: readonly string[] = ['package', 'ecosystem', 'severity'];
 
 function scanBlock(value: unknown, path: string, withMalware = false): void {
   const block = object(value, path);
   oneOf(block.status, SCAN_STATUSES, `${path}.status`);
   string(block.message, `${path}.message`);
   githubUrl(block.url, `${path}.url`);
-  alerts(block.alerts, `${path}.alerts`);
+  alerts(block.alerts, `${path}.alerts`, withMalware ? DEPENDABOT_TEXT_FIELDS : []);
   if (withMalware) {
-    alerts(block.malware_alerts, `${path}.malware_alerts`);
+    alerts(block.malware_alerts, `${path}.malware_alerts`, DEPENDABOT_TEXT_FIELDS);
   }
 }
 

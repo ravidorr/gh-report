@@ -6,7 +6,7 @@ All notable changes are documented here. Format follows [Keep a Changelog](https
 
 ### Changed
 
-- The published Dependabot table now names the vulnerable package, its ecosystem and the severity for alerts of public repos, even with `ALERT_DETAILS=false`. Alerts of private repos still keep only number and link, and no advisory text, paths or secret types are published. The first column is now "Package".
+- The published Dependabot table now names the vulnerable package, its ecosystem and the severity for alerts of public repos, even with `ALERT_DETAILS=false`. Alerts of private repos still keep only number and link, and no advisory text, paths or secret types are published. The first column is now "Package". The report types and the runtime parser now cover these fields.
 
 ## [0.4.0] - 2026-11-24
 
