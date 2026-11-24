@@ -139,22 +139,31 @@ function severityRank(severity: string | null | undefined): number {
 
 function renderDependabot(doc: Document, repos: Repo[]): void {
   const alerts = repos
-    .flatMap((repo) => repo.dependabot.alerts.map((alert) => ({ alert, repo })))
+    .flatMap((repo) => {
+      // `malware_alerts` survives ALERT_DETAILS=false (alerts are cut to number and url, so `classification` is gone).
+      const malwareNumbers = new Set(repo.dependabot.malware_alerts.map((a) => a.number));
+      return repo.dependabot.alerts.map((alert) => ({
+        alert,
+        repo,
+        malware: malwareNumbers.has(alert.number) || alert.classification === 'malware',
+      }));
+    })
     .sort((a, b) => severityRank(a.alert.severity) - severityRank(b.alert.severity));
+  // An empty table must not read as an all-clear when some repos' alerts could not be read.
+  const unchecked = repos.filter((repo) => isNotChecked(repo.dependabot.status)).length;
   renderTable(
     doc,
     'dependabot',
     [['Repo'], ['Alert'], ['Ecosystem'], ['Severity', 'data-table-n']],
-    alerts.map(({ alert, repo }): Cell[] => {
-      const malware = alert.classification === 'malware';
-      return [
-        [repoLink(doc, repo)],
-        [[link(doc, alert.package ?? `#${String(alert.number)}`, alert.url), malware ? el(doc, 'span', { className: 'tag', textContent: 'malware' }) : '']],
-        [alert.ecosystem ?? ''],
-        [alert.severity ?? '', 'data-table-n', severityRank(alert.severity)],
-      ];
-    }),
-    'No open Dependabot alerts.',
+    alerts.map(({ alert, repo, malware }): Cell[] => [
+      [repoLink(doc, repo)],
+      [[link(doc, alert.package ?? `#${String(alert.number)}`, alert.url), malware ? el(doc, 'span', { className: 'tag', textContent: 'malware' }) : '']],
+      [alert.ecosystem ?? ''],
+      [alert.severity ?? '', 'data-table-n', severityRank(alert.severity)],
+    ]),
+    unchecked
+      ? `No open Dependabot alerts found, but ${formatNumber(unchecked)} ${unchecked === 1 ? 'repo' : 'repos'} could not be checked.`
+      : 'No open Dependabot alerts.',
   );
 }
 

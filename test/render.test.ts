@@ -75,6 +75,11 @@ describe('renderDashboard with the sample report', () => {
     expect(hrefs('#issues tbody a')).toEqual([`${GH}/example-app`, `${GH}/example-app/issues/2`]);
   });
 
+  it('lists the sample Dependabot alert with its package, ecosystem, severity and links', () => {
+    expect(rows('dependabot')).toEqual([['example-app', 'left-pad', 'npm', 'high']]);
+    expect(hrefs('#dependabot tbody a')).toEqual([`${GH}/example-app`, `${GH}/example-app/security/dependabot/1`]);
+  });
+
   it('shows failed workflows with their age and a bar scaled to the oldest', () => {
     expect(rows('failed')).toEqual([['example-app', 'CI', 'main', '4 days ago (2026-01-10)']]);
     expect(document.querySelector<HTMLElement>('#failed .bar')?.style.width).toBe('100%');
@@ -300,38 +305,131 @@ describe('renderDashboard edge cases', () => {
     expect(text('#repos .data-table-empty')).toEqual([]);
   });
 
-  it('lists Dependabot alerts most severe first, flags malware, and copes with missing details', () => {
-    const alert = (number: number, extra: Record<string, string | null>): Report['repos'][number]['dependabot']['alerts'][number] => ({
+  describe('Dependabot alerts table', () => {
+    type Alert = Report['repos'][number]['dependabot']['alerts'][number];
+    const alert = (repo: string, number: number, extra: Record<string, string | null> = {}): Alert => ({
       number,
-      url: `${GH}/x/security/dependabot/${String(number)}`,
+      url: `${GH}/${repo}/security/dependabot/${String(number)}`,
       ...extra,
     });
-    const dependabot = {
-      status: 'ok' as const,
-      message: '',
-      malware_alerts: [],
-      url: `${GH}/x/security/dependabot`,
-      alerts: [
-        alert(1, { package: 'lodash', ecosystem: 'npm', severity: 'low' }),
-        alert(2, { package: 'evil', ecosystem: 'npm', severity: 'critical', classification: 'malware' }),
-        alert(3, {}),
-        alert(4, { package: 'pip-thing', ecosystem: null, severity: 'weird' }),
-      ],
-    };
-    renderDashboard(document, makeReport([makeRepo('x', { dependabot })]), NOW);
+    const repoWith = (name: string, alerts: Alert[], malware: Alert[] = []): Report['repos'][number] =>
+      makeRepo(name, {
+        dependabot: { status: 'ok', message: '', malware_alerts: malware, alerts, url: `${GH}/${name}/security/dependabot` },
+      });
+    const header = (label: string): HTMLButtonElement =>
+      must([...document.querySelectorAll<HTMLButtonElement>('#dependabot th button')].find((b) => b.textContent === label));
+    const severities = (): string[] => rows('dependabot').map((r) => r[3] ?? '');
 
-    expect(rows('dependabot')).toEqual([
-      ['x', 'evilmalware', 'npm', 'critical'],
-      ['x', 'lodash', 'npm', 'low'],
-      ['x', '#3', '', ''],
-      ['x', 'pip-thing', '', 'weird'],
-    ]);
-    expect(hrefs('#dependabot tbody a')).toEqual([
-      `${GH}/x`, `${GH}/x/security/dependabot/2`,
-      `${GH}/x`, `${GH}/x/security/dependabot/1`,
-      `${GH}/x`, `${GH}/x/security/dependabot/3`,
-      `${GH}/x`, `${GH}/x/security/dependabot/4`,
-    ]);
+    it('lists alerts from all repos most severe first, keeping collection order within a severity', () => {
+      renderDashboard(
+        document,
+        makeReport([
+          repoWith('a', [alert('a', 1, { package: 'a-low', severity: 'low' }), alert('a', 2, { package: 'a-high', severity: 'high' })]),
+          repoWith('b', [
+            alert('b', 3, { package: 'b-critical', severity: 'critical' }),
+            alert('b', 4, { package: 'b-medium', severity: 'medium' }),
+            alert('b', 5, { package: 'b-high', severity: 'high' }),
+          ]),
+        ]),
+        NOW,
+      );
+
+      expect(rows('dependabot').map((r) => `${r[0] ?? ''}/${r[1] ?? ''}`)).toEqual(['b/b-critical', 'a/a-high', 'b/b-high', 'b/b-medium', 'a/a-low']);
+      expect(hrefs('#dependabot tbody a')).toEqual([
+        `${GH}/b`, `${GH}/b/security/dependabot/3`,
+        `${GH}/a`, `${GH}/a/security/dependabot/2`,
+        `${GH}/b`, `${GH}/b/security/dependabot/5`,
+        `${GH}/b`, `${GH}/b/security/dependabot/4`,
+        `${GH}/a`, `${GH}/a/security/dependabot/1`,
+      ]);
+    });
+
+    it('puts alerts with a missing or unknown severity last and copes with missing details', () => {
+      renderDashboard(
+        document,
+        makeReport([
+          repoWith('x', [
+            alert('x', 1, { package: 'lodash', ecosystem: 'npm', severity: 'low' }),
+            alert('x', 2),
+            alert('x', 3, { package: 'pip-thing', ecosystem: null, severity: 'weird' }),
+          ]),
+        ]),
+        NOW,
+      );
+
+      expect(rows('dependabot')).toEqual([
+        ['x', 'lodash', 'npm', 'low'],
+        ['x', '#2', '', ''],
+        ['x', 'pip-thing', '', 'weird'],
+      ]);
+    });
+
+    it('sorts by severity, not alphabetically, when the Severity header is clicked', () => {
+      renderDashboard(
+        document,
+        makeReport([
+          repoWith('x', [
+            alert('x', 1, { severity: 'low' }),
+            alert('x', 2, { severity: 'critical' }),
+            alert('x', 3, { severity: 'weird' }),
+            alert('x', 4, { severity: 'medium' }),
+            alert('x', 5, { severity: 'high' }),
+          ]),
+        ]),
+        NOW,
+      );
+
+      header('Severity').click();
+      expect(severities()).toEqual(['critical', 'high', 'medium', 'low', 'weird']);
+
+      header('Severity').click();
+      expect(severities()).toEqual(['weird', 'low', 'medium', 'high', 'critical']);
+    });
+
+    it('tags malware from the malware list, which survives hidden alert details, and from the classification', () => {
+      const hidden = alert('x', 2);
+      renderDashboard(
+        document,
+        makeReport([
+          repoWith(
+            'x',
+            [alert('x', 1, { package: 'lodash', classification: 'general' }), hidden, alert('x', 3, { package: 'evil', classification: 'malware' }), alert('x', 4)],
+            [hidden],
+          ),
+        ]),
+        NOW,
+      );
+
+      expect([...document.querySelectorAll('#dependabot tbody tr')].map((tr) => tr.querySelector('.tag')?.textContent ?? null)).toEqual([null, 'malware', 'malware', null]);
+      expect(text('#dependabot tbody tr:nth-child(2) td:nth-child(2) a')).toEqual(['#2']);
+    });
+
+    it('matches malware by alert number within its own repo only', () => {
+      const other = alert('a', 7);
+      renderDashboard(document, makeReport([repoWith('a', [other], [other]), repoWith('b', [alert('b', 7)])]), NOW);
+
+      expect([...document.querySelectorAll('#dependabot tbody tr')].map((tr) => tr.querySelector('.tag')?.textContent ?? null)).toEqual(['malware', null]);
+    });
+
+    it('shows package names as text, never as markup', () => {
+      const hostile = '<img src=x onerror=alert(1)>';
+      renderDashboard(document, makeReport([repoWith('x', [alert('x', 1, { package: hostile })])]), NOW);
+
+      expect(text('#dependabot tbody td:nth-child(2) a')).toEqual([hostile]);
+      expect(document.querySelector('#dependabot img')).toBeNull();
+    });
+
+    it.each([
+      ['error', 1, 'No open Dependabot alerts found, but 1 repo could not be checked.'],
+      ['no_permission', 2, 'No open Dependabot alerts found, but 2 repos could not be checked.'],
+      ['disabled', 0, 'No open Dependabot alerts.'],
+    ] as const)('says so when a repo with status %s has no alerts to list', (status, unchecked, expected) => {
+      const blind = (name: string): Report['repos'][number] =>
+        makeRepo(name, { dependabot: { status, message: '', malware_alerts: [], alerts: [], url: `${GH}/${name}/security/dependabot` } });
+      renderDashboard(document, makeReport(unchecked === 2 ? [blind('a'), blind('b')] : [blind('a')]), NOW);
+
+      expect(text('#dependabot .data-table-empty')).toEqual([expected]);
+    });
   });
 
   it('says there are no repos when the report is empty', () => {

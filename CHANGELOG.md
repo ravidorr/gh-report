@@ -6,7 +6,7 @@ All notable changes are documented here. Format follows [Keep a Changelog](https
 
 ### Added
 
-- A "Dependabot alerts" table listing every open alert, most severe first, with the repo, package (or alert number when details are off), ecosystem and severity. Malware alerts are tagged.
+- A "Dependabot alerts" table listing every open alert, most severe first, with the repo, package (or alert number when details are off), ecosystem and severity. Malware alerts are tagged, also when alert details are off. If a repo's alerts could not be read, an empty table says so instead of reporting no alerts.
 
 ## [0.3.1] - 2026-11-10
 
