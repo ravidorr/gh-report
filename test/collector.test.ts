@@ -529,11 +529,24 @@ describe('ALERT_DETAILS=false', () => {
     const repo = firstRepo();
 
     expect(report().alert_details).toBe(false);
-    expect(repo.dependabot.alerts).toEqual([{ number: 2, url: 'https://x/d/2' }]);
-    expect(repo.dependabot.malware_alerts).toEqual([{ number: 2, url: 'https://x/d/2' }]);
+    const dependabot = { number: 2, url: 'https://x/d/2', package: 'evil', ecosystem: 'npm', severity: 'high' };
+    expect(repo.dependabot.alerts).toEqual([dependabot]);
+    expect(repo.dependabot.malware_alerts).toEqual([{ number: 2, url: 'https://x/d/2', package: 'evil', ecosystem: 'npm', severity: null }]);
     expect(repo.code_scanning.alerts).toEqual([{ number: 7, url: 'https://x/c/7' }]);
     expect(repo.secret_scanning.alerts).toEqual([{ number: 9, url: 'https://x/s/9' }]);
-    expect(raw()).not.toMatch(/evil|src\/a\.ts|Example Token/);
+    expect(raw()).not.toMatch(/Advisory|runtime|src\/a\.ts|Example Token/);
+  });
+
+  it('keeps only the number and url of Dependabot alerts of a private repo', () => {
+    setRepos([{ name: 'priv', private: true }]);
+    put(`${BASE.replace('pub', 'priv')}/dependabot/alerts`, [
+      { number: 2, html_url: 'https://x/d/2', dependency: { package: { name: 'secret-pkg', ecosystem: 'npm' } }, security_advisory: { severity: 'high' } },
+    ]);
+
+    run({ ALERT_DETAILS: 'false', INCLUDE_PRIVATE: 'true' });
+
+    expect(firstRepo().dependabot.alerts).toEqual([{ number: 2, url: 'https://x/d/2' }]);
+    expect(raw()).not.toContain('secret-pkg');
   });
 
   it('also drops error text and workflow file paths from the published data', () => {

@@ -154,7 +154,7 @@ function renderDependabot(doc: Document, repos: Repo[]): void {
   renderTable(
     doc,
     'dependabot',
-    [['Repo'], ['Alert'], ['Ecosystem'], ['Severity', 'data-table-n']],
+    [['Repo'], ['Package'], ['Ecosystem'], ['Severity', 'data-table-n']],
     alerts.map(({ alert, repo, malware }): Cell[] => [
       [repoLink(doc, repo)],
       [[link(doc, alert.package ?? `#${String(alert.number)}`, alert.url), malware ? el(doc, 'span', { className: 'tag', textContent: 'malware' }) : '']],

@@ -11,8 +11,9 @@
 #   INCLUDE_ARCHIVED=false
 #   EXCLUDE_REPOS=""         bare repo names (not owner/name, case-sensitive) to leave out,
 #                            separated by commas or spaces
-#   ALERT_DETAILS=true       set to "false" for anything published: alerts keep only number and url,
-#                            and the error text and workflow file paths are dropped. PR and issue
+#   ALERT_DETAILS=true       set to "false" for anything published: alerts keep only number and url
+#                            (Dependabot alerts of public repos also keep package, ecosystem and
+#                            severity), and the error text and workflow file paths are dropped. PR and issue
 #                            titles, workflow names and branch names are still included.
 #   MAX_ATTEMPTS=3           attempts per API call when GitHub answers with a rate limit or 5xx error
 #   RETRY_DELAY=2            seconds to wait after the first failed attempt (doubles are not used:
@@ -185,6 +186,9 @@ while read -r repo; do
     --argjson dep "$dependabot" --argjson cs "$code_scanning" --argjson ss "$secret_scanning" \
     --arg url "$url" --arg details "$ALERT_DETAILS" '
     def slim: if $details == "true" then . else map({number, url}) end;
+    # Public output still names the vulnerable package, its ecosystem and the severity for alerts of
+    # public repos (those names are visible in the public repo anyway). Nothing else is kept.
+    def slim_dep: if $details == "true" then . else map({number, url} + (if $repo.private then {} else {package, ecosystem, severity} end)) end;
     def clean: if $details == "true" then . else .message = "" end;
     $repo + {
       branches: {count: $branches, url: ($url + "/branches")},
@@ -194,7 +198,7 @@ while read -r repo; do
       failed_workflows: ($failed | if $details == "true" then . else map(del(.path)) end),
       dependabot: ($dep
         | .malware_alerts = (.alerts | map(select(.classification == "malware") | {number, package, ecosystem, summary, url}))
-        | .alerts |= slim | .malware_alerts |= slim | clean),
+        | .alerts |= slim_dep | .malware_alerts |= slim_dep | clean),
       code_scanning: ($cs | .alerts |= slim | clean),
       secret_scanning: ($ss | .alerts |= slim | clean)
     }' >"$TMP/repo-$count.json"

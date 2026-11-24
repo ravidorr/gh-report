@@ -2,6 +2,12 @@
 
 All notable changes are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-11-24
+
+### Changed
+
+- The published Dependabot table now names the vulnerable package, its ecosystem and the severity for alerts of public repos, even with `ALERT_DETAILS=false`. Alerts of private repos still keep only number and link, and no advisory text, paths or secret types are published. The first column is now "Package".
+
 ## [0.4.0] - 2026-11-24
 
 ### Added

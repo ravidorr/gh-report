@@ -25,7 +25,7 @@ A daily GitHub Action that collects branches, open pull requests, open issues, f
 
 ## Privacy of the published page
 
-The Pages site is public. The workflow sets `INCLUDE_PRIVATE: "false"`, so private repositories, their names and their alerts are not published, and a test fails if that line is removed. Set it to `"true"` only if you accept publishing private repository names. The workflow also sets `ALERT_DETAILS: "false"`, so the published `data.json` keeps only the number and link of each alert, never package names, alert file paths, secret types, error text or workflow file paths. The page does publish public repository names, the titles of open pull requests and issues, and the names of failed workflows and their branches. Forks and archived repositories are skipped unless `INCLUDE_FORKS` or `INCLUDE_ARCHIVED` is `"true"`.
+The Pages site is public. The workflow sets `INCLUDE_PRIVATE: "false"`, so private repositories, their names and their alerts are not published, and a test fails if that line is removed. Set it to `"true"` only if you accept publishing private repository names. The workflow also sets `ALERT_DETAILS: "false"`, so the published `data.json` keeps only the number and link of each alert (Dependabot alerts of public repositories also keep package name, ecosystem and severity), never advisory text, alert file paths, secret types, error text or workflow file paths. The page does publish public repository names, the titles of open pull requests and issues, and the names of failed workflows and their branches. Forks and archived repositories are skipped unless `INCLUDE_FORKS` or `INCLUDE_ARCHIVED` is `"true"`.
 
 ## Run it locally
 
