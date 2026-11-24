@@ -1,6 +1,6 @@
 # Privacy
 
-Last updated: 2026-11-02
+Last updated: 2026-11-24
 
 ## Data we collect
 

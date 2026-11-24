@@ -187,7 +187,7 @@ while read -r repo; do
     --arg url "$url" --arg details "$ALERT_DETAILS" '
     def slim: if $details == "true" then . else map({number, url}) end;
     # Public output still names the vulnerable package, its ecosystem and the severity for alerts of
-    # public repos (those names are visible in the public repo anyway). Nothing else is kept.
+    # public repos (package names are already visible in the manifests of a public repo). Nothing else is kept.
     def slim_dep: if $details == "true" then . else map({number, url} + (if $repo.private then {} else {package, ecosystem, severity} end)) end;
     def clean: if $details == "true" then . else .message = "" end;
     $repo + {
@@ -197,7 +197,7 @@ while read -r repo; do
       open_issues: $issues,
       failed_workflows: ($failed | if $details == "true" then . else map(del(.path)) end),
       dependabot: ($dep
-        | .malware_alerts = (.alerts | map(select(.classification == "malware") | {number, package, ecosystem, summary, url}))
+        | .malware_alerts = (.alerts | map(select(.classification == "malware") | {number, package, ecosystem, severity, summary, url}))
         | .alerts |= slim_dep | .malware_alerts |= slim_dep | clean),
       code_scanning: ($cs | .alerts |= slim | clean),
       secret_scanning: ($ss | .alerts |= slim | clean)

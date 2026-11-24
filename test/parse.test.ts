@@ -46,6 +46,13 @@ describe('parseReport', () => {
     expect(() => parseReport(changed('repos.0.dependabot.alerts.0.severity', value))).not.toThrow();
   });
 
+  it.each([
+    ['text fields omitted', { number: 1, url: 'https://github.com/x/y' }],
+    ['null text fields', { number: 1, url: 'https://github.com/x/y', package: null, ecosystem: null, severity: null }],
+  ])('accepts a malware alert with %s', (_label, alert) => {
+    expect(() => parseReport(changed('repos.0.dependabot.malware_alerts', [alert]))).not.toThrow();
+  });
+
   it('explains how to fix a file from an older collector', () => {
     expect(() => parseReport(changed('schema_version', REMOVE))).toThrow('older collector');
   });
